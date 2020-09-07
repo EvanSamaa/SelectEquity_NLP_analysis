@@ -3,6 +3,8 @@ import json
 import csv
 
 def GET():
+    # Create your own account (https://developer.nytimes.com/get-started) and get your api key if you like. 
+    # But you can also use my key, it should work in the same way.
     a = requests.get('https://api.nytimes.com/svc/archive/v1/2020/3.json?api-key=37xNSjQNTdhK18OgxAGjn9WN9QnO1Sn7')
 
     with open('data.json', 'w') as f:
