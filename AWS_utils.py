@@ -12,8 +12,7 @@ class StorageWizard():
             print(object["Key"])
     def store(self, folder_destination, file_name, override_protection=True):
         # usage example:
-        # StorageWizard.store("CNN news/", "test_file.txt") will store local file test_file.txt to the CNN news folder on S3
-
+        # StorageWizard.store("CNN news/", "test_file22.txt") will store local file test_file22.txt to the CNN news folder on S3
         # overriding pretection
         if override_protection:
             objects = self.s3_client.list_objects(Bucket=self.bucket.name)["Contents"]
@@ -27,9 +26,12 @@ class StorageWizard():
         return 0
     def load(self, file_key, file_destination):
         # usage example:
-        # StorageWizard.load("CNN news/test_file.txt", "./test2.txt") will store local file test_file.txt to the CNN news folder on S3
+        # StorageWizard.load("CNN news/test_file22.txt", "./test2.txt") will store local file test_file22.txt to the CNN news folder on S3
         with open(file_destination, 'wb') as data:
             self.bucket.download_fileobj(file_key, data)
 
 if __name__ == "__main__":
     wiz = StorageWizard()
+    wiz.store("/", "test_file22.txt")
+
+pip freeze >requirement.txt
