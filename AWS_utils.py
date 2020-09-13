@@ -33,5 +33,3 @@ class StorageWizard():
 if __name__ == "__main__":
     wiz = StorageWizard()
     wiz.store("/", "test_file22.txt")
-
-pip freeze >requirement.txt
