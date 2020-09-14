@@ -33,3 +33,4 @@ class StorageWizard():
 
 if __name__ == "__main__":
     wiz = StorageWizard()
+    wiz.store("","larrytest.txt")
