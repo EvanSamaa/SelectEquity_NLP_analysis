@@ -2,7 +2,9 @@
 import requests
 import pandas as pd
 import json
-
+#12calls/second
+#5k calls/day
+#free for non-commercial usage
 # https://open-platform.theguardian.com/documentation/section
 #'''
 query = "corona virus","covid19","COV19"
