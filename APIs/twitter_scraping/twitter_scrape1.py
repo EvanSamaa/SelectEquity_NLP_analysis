@@ -2,10 +2,10 @@ import GetOldTweets3 as got
 import pandas as pd
 
 
-def scrape_text_query(text_query, since_date, until_date, count):
+def scrape_text_query(text_query, since_date, until_date, count,lan):
     # Creation of query object
     tweetCriteria = got.manager.TweetCriteria().setQuerySearch(
-        text_query).setSince(since_date).setUntil(until_date).setMaxTweets(count)
+        text_query).setSince(since_date).setUntil(until_date).setMaxTweets(count).setLang(lan)
     # Creation of list that contains all tweets
     tweets = got.manager.TweetManager.getTweets(tweetCriteria)
 
@@ -46,7 +46,7 @@ if __name__ == "__main__":
     until_date = '2020-03-01'
 
     # Max recent tweets pulls x amount of most recent tweets from that user
-    max_tweets = 500
-
+    max_tweets = 10
+    lan="en"
     # Function scrapes for tweets containing text_query, attempting to pull max_tweet amount and create csv/excel file containing data.
-    scrape_text_query(text_query, since_date, until_date, max_tweets)
+    scrape_text_query(text_query, since_date, until_date, max_tweets,lan)
