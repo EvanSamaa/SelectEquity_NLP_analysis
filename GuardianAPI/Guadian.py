@@ -1,10 +1,8 @@
-import requests
-import os
-from pprint import pprint
+
 import requests
 import pandas as pd
 import json
-import os
+
 # https://open-platform.theguardian.com/documentation/section
 #'''
 query = "corona virus","covid19","COV19"
