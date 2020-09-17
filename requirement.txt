@@ -39,6 +39,8 @@ opt-einsum==3.3.0
 pandas==1.1.2
 parso==0.7.0
 pickleshare==0.7.5
+praw==7.1.0
+prawcore==1.5.0
 prompt-toolkit==3.0.5
 protobuf==3.13.0
 pyasn1==0.4.8
@@ -65,8 +67,10 @@ toml==0.10.1
 tools==0.1.9
 traitlets==4.3.3
 typed-ast==1.4.1
+update-checker==0.18.0
 urllib3==1.25.10
 wcwidth==0.1.9
+websocket-client==0.57.0
 Werkzeug==1.0.1
 wincertstore==0.2
 wrapt==1.12.1
