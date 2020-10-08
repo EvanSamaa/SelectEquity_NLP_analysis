@@ -3,10 +3,11 @@ from APIs.nytimes import *
 from APIs.Guadian import *
 from APIs.Googlenews.googlenews import *
 from APIs.newsapi_scraping.newsapi_scrape1 import *
-import os
+from APIs.FinancialTimes import *
+
 
 def news_search(query_terms, savepath, ealiest_date="2000-01-01", latest_date=""):
-
+    list_of_df = []
     print("Begins Scraping")
     print("CNN scraping starts")
     CNN_scraping(query_terms, ealiest_date, latest_date)
@@ -14,14 +15,14 @@ def news_search(query_terms, savepath, ealiest_date="2000-01-01", latest_date=""
     guardien_scrapping(query_terms, ealiest_date, latest_date)
     print("NY times scraping starts")
     scrape_NYtimes(query_terms, ealiest_date, latest_date)
+    print("Financial times scraping starts")
+    search_financial_times(query_terms, ealiest_date, latest_date)
     print(os.listdir("data"))
-    list_of_df = []
+
 
     for item in os.listdir("data/"):
         full_path = "data/" + item
-        print(full_path)
         df = pd.read_csv(full_path)
-        print(df)
         list_of_df.append(df)
 
     rtv = pd.concat(list_of_df)
@@ -29,7 +30,7 @@ def news_search(query_terms, savepath, ealiest_date="2000-01-01", latest_date=""
 
 
 if __name__ == "__main__":
-    term = "corona virus OR covid"
-    path = "./data/covid.json"
-    ealiest_date = "2016-01-01"
+    term = "Trump OR China"
+    path = "./data/covid.csv"
+    ealiest_date = "2020-08-20"
     news_search(term, path, ealiest_date)

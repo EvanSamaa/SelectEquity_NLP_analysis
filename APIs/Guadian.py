@@ -79,6 +79,8 @@ def guardien_scrapping(query, earliest_date="2000-01-01", latest_date=""):
             all_results.extend(data['response']['results'])
             total_count = total_count + len(all_results)
             for article in all_results:
+                print(article.keys())
+                A[2]
                 sub_json ={}
                 sub_json["title"] = article["webTitle"]
                 sub_json["date"] = article["webPublicationDate"].split("T")[0]

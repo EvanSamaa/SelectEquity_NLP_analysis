@@ -2,23 +2,27 @@ from GoogleNews import GoogleNews
 from newspaper import Article
 from newspaper import Config
 import pandas as pd
-import nltk
+from datetime import datetime as dt
+import json
+import os
 
-def google_new_scrape():
-    googlenews=GoogleNews(start='05/01/2020',end='05/03/2020')
-    googlenews.search('Coronavirus')
-    result=googlenews.result()
-
-
-    df=pd.DataFrame(result)
-
-
-    for i in range(2,4):
+def google_new_scrape(keyword=0, earliest_date="2000-01-01", end_date=""):
+    ealiest_date = dt.strptime(earliest_date, "20%y-%m-%d")
+    ealiest_date = ealiest_date.strftime("%m/%d/20%y")
+    googlenews = None
+    if end_date != "":
+        end_date = dt.strptime(end_date, "20%y-%m-%d")
+        end_date = end_date.strftime("%m/%d/20%y")
+        googlenews = GoogleNews(start=earliest_date,end=end_date)
+    else:
+        googlenews = GoogleNews(start=earliest_date)
+    googlenews.search('trump')
+    for i in range(1,1000):
         googlenews.getpage(i)
         result=googlenews.result()
+        print(len(result), result)
         df=pd.DataFrame(result)
     list=[]
-
     for ind in df.index:
         dict={}
         article = Article(df['link'][ind])
@@ -35,3 +39,5 @@ def google_new_scrape():
     print(news_df)
     file_name = 'googlenews.csv'
     news_df.to_csv(file_name)
+if __name__ == "__main__":
+    google_new_scrape()
