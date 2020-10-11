@@ -12,7 +12,7 @@ def scrape_NYtimes(queries, earliest_date="2000-01-01", latest_date=""):
         tot_articles = tot_articles + search_ny_times(q, earliest_date=earliest_date, latest_date=latest_date)
     os.remove("data/NY_temp.txt")
     return tot_articles
-
+def search_ny_times(query, earliest_date="2000-01-01", latest_date=""):
     # Create your own account (https://developer.nytimes.com/get-started) and get your api key if you like. 
     # But you can also use my key, it should work in the same way.
     params = {"q":query, "api-key":"37xNSjQNTdhK18OgxAGjn9WN9QnO1Sn7", "sort":"oldest", "page":0, "begin_date":earliest_date}

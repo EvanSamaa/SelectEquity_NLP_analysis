@@ -5,7 +5,16 @@ import pandas as pd
 import os
 import math as math
 import time
-def search_financial_times(keyword, earliest_date="2000-01-01", latest_date=""):
+
+def scrape_financial_times(queries, earliest_date="2000-01-01", latest_date=""):
+    queries = queries.split(" OR ")
+    tot_articles = 0
+    for q in queries:
+        tot_articles = tot_articles + search_ny_times(q, earliest_date=earliest_date, latest_date=latest_date)
+    os.remove("data/FT_temp.txt")
+    return tot_articles
+
+def financial_times_scrapping(keyword, earliest_date="2000-01-01", latest_date=""):
     url = "https://api.ft.com/content/search/v1?apiKey=59cbaf20e3e06d3565778e7b8e6675b8ae9c40cf8923fccc493add4e"
     key = "59cbaf20e3e06d3565778e7b8e6675b8ae9c40cf8923fccc493add4e"
     starting_article_number = 0
@@ -24,10 +33,15 @@ def search_financial_times(keyword, earliest_date="2000-01-01", latest_date=""):
                 "aspects" :["title","lifecycle","location","summary","editorial"]}
     }
     rtv = {}
+    try:
+        with open('data/NY_temp.txt') as infile:
+            rtv = json.load(infile)
+    except:
+        rtv = {}
     r = requests.post(url, json=params).json()
     response = r["results"]
     total_articles_count = response[0]["indexCount"]
-    print(total_articles_count)
+    # print(total_articles_count)
     for article in range(0, len(response[0]["results"])):
         a = response[0]["results"][article]
         sub_json = {}
@@ -77,6 +91,7 @@ def search_financial_times(keyword, earliest_date="2000-01-01", latest_date=""):
                 else:
                     if date_of_interest <= latest_date:
                         rtv[a['id']] = sub_json
+            # print(a)
     print("A total of {} articles are obtained from Financial Times.".format(len(rtv)))
     with open('data/temp.txt', 'w') as outfile:
         json.dump(rtv, outfile)

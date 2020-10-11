@@ -41,7 +41,7 @@ def query_CNN_by_keyword_alt(keyword, earliest_date="2000-01-01", latest_date=""
                 #     print(a["ticker"])
                 # except:
                 #     pass
-                print(a.keys())
+                # print(a.keys())
                 date_of_interest = a[date_param].split("T")[0]
                 date_of_interest = dt.strptime(date_of_interest, "20%y-%m-%d")
                 if date_of_interest >= ealiest_date:

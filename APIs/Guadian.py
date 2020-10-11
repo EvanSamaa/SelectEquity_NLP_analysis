@@ -11,8 +11,15 @@ import os
 # https://open-platform.theguardian.com/documentation/section
 #'''
 # https://open-platform.theguardian.com/documentation/search
+def guardien_scrapping(queries, earliest_date="2000-01-01", latest_date=""):
+    queries = queries.split(" OR ")
+    tot_articles = 0
+    for q in queries:
+        tot_articles = tot_articles + scrape_guardien(q, earliest_date=earliest_date, latest_date=latest_date)
+    os.remove("data/guardian_temp.txt")
+    return tot_articles
 
-def guardien_scrapping(query, earliest_date="2000-01-01", latest_date=""):
+def scrape_guardien(query, earliest_date="2000-01-01", latest_date=""):
     # query = "corona virus, covid"
     query_fields = "headline"
     section = "news"  # https://open-platform.theguardian.com/documentation/section
@@ -20,8 +27,13 @@ def guardien_scrapping(query, earliest_date="2000-01-01", latest_date=""):
     if latest_date == "":
         latest_date = datetime.today().strftime('%Y-%m-%d')
     page_size = 50
-    output_json = {}
     total_count = 0
+    output_json = {}
+    try:
+        with open('data/guardian_temp.txt') as infile:
+            output_json = json.load(infile)
+    except:
+        output_json = {}
     for page in range(1, 1000):
         # to ensure we do not go over the limitation of 12 request per sec
         time.sleep(0.2)
@@ -79,8 +91,8 @@ def guardien_scrapping(query, earliest_date="2000-01-01", latest_date=""):
             all_results.extend(data['response']['results'])
             total_count = total_count + len(all_results)
             for article in all_results:
-                print(article.keys())
-                A[2]
+                # print(article.keys())
+                # A[2]
                 sub_json ={}
                 sub_json["title"] = article["webTitle"]
                 sub_json["date"] = article["webPublicationDate"].split("T")[0]

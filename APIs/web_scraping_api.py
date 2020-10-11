@@ -9,14 +9,14 @@ from APIs.FinancialTimes import *
 def news_search(query_terms, savepath, ealiest_date="2000-01-01", latest_date=""):
     list_of_df = []
     print("Begins Scraping")
+    print("NY times scraping starts")
+    scrape_NYtimes(query_terms, ealiest_date, latest_date)
+    print("Financial times scraping starts")
+    scrape_financial_times(query_terms, ealiest_date, latest_date)
     print("CNN scraping starts")
     CNN_scraping(query_terms, ealiest_date, latest_date)
     print("Guardien scraping starts")
     guardien_scrapping(query_terms, ealiest_date, latest_date)
-    print("NY times scraping starts")
-    scrape_NYtimes(query_terms, ealiest_date, latest_date)
-    print("Financial times scraping starts")
-    search_financial_times(query_terms, ealiest_date, latest_date)
     print(os.listdir("data"))
 
 
@@ -30,7 +30,7 @@ def news_search(query_terms, savepath, ealiest_date="2000-01-01", latest_date=""
 
 
 if __name__ == "__main__":
-    term = "Trump OR China"
+    term = "covid OR corona OR coronavirus OR cov19 OR pandemic OR china virus OR covid-19"
     path = "./data/covid.csv"
-    ealiest_date = "2020-08-20"
+    ealiest_date = "2019-10-10"
     news_search(term, path, ealiest_date)
