@@ -1,4 +1,5 @@
 # utility functions
+
 def mkdir_p(mypath):
     '''Creates a directory. equivalent to using mkdir -p on the command line'''
     from errno import EEXIST

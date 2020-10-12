@@ -71,9 +71,7 @@ def plot_rollavg_daily_topN(daily_state_data, N):
 
 if __name__ == "__main__":
     # read data
-    data = pd.read_csv("./data/time_series_covid19_confirmed_US.csv",
-                       delimiter=',',
-                       index_col=0)
+    data = pd.read_csv("./data/time_series_covid19_confirmed_US.csv", delimiter=',', index_col=0)
     temp = data.groupby(['Province_State']).sum()
     state_data = (temp.iloc[:, 5:]).T  # accumulative cases group by state
     daily_state_data = state_data.diff()  # daily cases group by state
