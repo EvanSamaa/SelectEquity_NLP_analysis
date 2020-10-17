@@ -10,7 +10,7 @@ def scrape_financial_times(queries, earliest_date="2000-01-01", latest_date=""):
     queries = queries.split(" OR ")
     tot_articles = 0
     for q in queries:
-        tot_articles = tot_articles + search_ny_times(q, earliest_date=earliest_date, latest_date=latest_date)
+        tot_articles = tot_articles + financial_times_scrapping(q, earliest_date=earliest_date, latest_date=latest_date)
     os.remove("data/FT_temp.txt")
     return tot_articles
 
@@ -34,14 +34,21 @@ def financial_times_scrapping(keyword, earliest_date="2000-01-01", latest_date="
     }
     rtv = {}
     try:
-        with open('data/NY_temp.txt') as infile:
+        with open('data/FT_temp.txt') as infile:
             rtv = json.load(infile)
     except:
         rtv = {}
     r = requests.post(url, json=params).json()
-    response = r["results"]
+    try:
+        response = r["results"]
+    except:
+        return 0
     total_articles_count = response[0]["indexCount"]
     # print(total_articles_count)
+    try:
+        test = response[0]["results"]
+    except:
+        return 0
     for article in range(0, len(response[0]["results"])):
         a = response[0]["results"][article]
         sub_json = {}
@@ -69,7 +76,10 @@ def financial_times_scrapping(keyword, earliest_date="2000-01-01", latest_date="
         params["resultContext"]["offset"] = i * 100
         time.sleep(0.5)
         r = requests.post(url, json=params).json()
-        response = r["results"]
+        try:
+            response = r["results"]
+        except:
+            break
         for article in range(0, len(response[0]["results"])):
             a = response[0]["results"][article]
             sub_json = {}
@@ -93,12 +103,11 @@ def financial_times_scrapping(keyword, earliest_date="2000-01-01", latest_date="
                         rtv[a['id']] = sub_json
             # print(a)
     print("A total of {} articles are obtained from Financial Times.".format(len(rtv)))
-    with open('data/temp.txt', 'w') as outfile:
+    with open('data/FT_temp.txt', 'w') as outfile:
         json.dump(rtv, outfile)
-    with open('data/temp.txt') as infile:
+    with open('data/FT_temp.txt') as infile:
         news_df = pd.read_json(infile, orient='index')
     file_name = 'data/FinancialTimes.csv'
-    os.remove("data/temp.txt")
     news_df.to_csv(file_name, index=False)
     return total_articles_count
 if __name__ == "__main__":

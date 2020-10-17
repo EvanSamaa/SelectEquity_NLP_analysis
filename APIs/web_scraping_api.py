@@ -30,7 +30,7 @@ def news_search(query_terms, savepath, ealiest_date="2000-01-01", latest_date=""
 
 
 if __name__ == "__main__":
-    term = "covid OR corona OR coronavirus OR cov19 OR pandemic OR china virus OR covid-19"
-    path = "./data/covid.csv"
+    term = "covid OR SARS OR coronavirus OR cov19 OR pandemic OR novel virus OR covid-19 OR Wuhan Virus"
+    path = "./data/covid_new_keyword.csv"
     ealiest_date = "2019-10-10"
     news_search(term, path, ealiest_date)

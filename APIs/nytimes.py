@@ -30,23 +30,26 @@ def search_ny_times(query, earliest_date="2000-01-01", latest_date=""):
         time.sleep(6)
         params["page"] = i
         a = requests.get(url, params = params).json()
-        if a["status"] == "OK":
-            data = a["response"]["docs"]
-            if len(data) > 0:
-                for article in data:
-                    # for item in article.keys():
-                    #     print(item, article[item])
-                    sub_json = {}
-                    sub_json["title"] = article["headline"]["main"]
-                    sub_json["date"] = article["pub_date"].split("T")[0]
-                    sub_json["raw_body"] = article["abstract"] + "\n" + article["lead_paragraph"]
-                    sub_json["url"] = article["web_url"]
-                    sub_json["publisher"] = "NYtimes"
-                    rtv_dict[article["_id"]] = sub_json
+        try:
+            if a["status"] == "OK":
+                data = a["response"]["docs"]
+                if len(data) > 0:
+                    for article in data:
+                        # for item in article.keys():
+                        #     print(item, article[item])
+                        sub_json = {}
+                        sub_json["title"] = article["headline"]["main"]
+                        sub_json["date"] = article["pub_date"].split("T")[0]
+                        sub_json["raw_body"] = article["abstract"] + "\n" + article["lead_paragraph"]
+                        sub_json["url"] = article["web_url"]
+                        sub_json["publisher"] = "NYtimes"
+                        rtv_dict[article["_id"]] = sub_json
+                else:
+                    break
             else:
+                print("have trouble connecting with NYT server")
                 break
-        else:
-            print("have trouble connecting with NYT server")
+        except:
             break
     # with open('data.json', 'w') as f:
     #     json.dump(a.json(), f)

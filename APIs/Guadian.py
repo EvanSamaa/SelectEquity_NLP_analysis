@@ -109,12 +109,11 @@ def scrape_guardien(query, earliest_date="2000-01-01", latest_date=""):
             print("There is no result")
             break
     print("A total of {} articles are obtained from Guardian.".format(total_count))
-    with open('data/temp.txt', 'w') as outfile:
+    with open('data/guardian_temp.txt', 'w') as outfile:
         json.dump(output_json, outfile)
-    with open('data/temp.txt') as infile:
+    with open('data/guardian_temp.txt') as infile:
         news_df = pd.read_json(infile, orient='index')
     file_name = 'data/GuardianNews.csv'
-    os.remove("data/temp.txt")
     news_df.to_csv(file_name, index=False)
     return total_count
 if __name__ == "__main__":
