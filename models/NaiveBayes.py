@@ -18,6 +18,7 @@ class NBClassifier():
         nltk.download('movie_reviews')
         nltk.download('punkt')
         nltk.download('wordnet')
+        nltk.download('stopwords')
         self.model = load_classfier(model_path)
     def classify(self, phrase):
         tokens = self.tokenize(phrase)
@@ -90,14 +91,29 @@ def train_bayes(file_csv):
 
 if __name__ == "__main__":
 
-    # plottt = np.load("bays_sentiment.npy")
+    plottt = np.load("bays_sentiment.npy")
     # plt.plot(plottt)
     # plt.show()
     # train_bayes("../APIs/data/training.1600000.processed.noemoticon.csv")
-
-
-
+    # plt.title("The Guardian")
+    plt.plot(np.arange(0, 1000), plottt[:, 2])
+    plt.show()
+    # plt.plot(np.arange(0, 1000), plottt[:, 1])
+    # plt.plot(np.arange(0, 1000), plottt[:, 2])
+    data = pd.read_csv("../covid_data/data/darta - Sheet1.csv", header=0)
+    print(len(data))
+    correct = 0
+    count = 0
     model = NBClassifier("NB_baseline.pickle")
+    for index, row in data.iterrows():
+        if row[1].lower() != "neutral":
+            count = count + 1
+            out = model.classify(row[0])
+            if out.lower() == row[1].lower():
+                correct = correct + 1
+    print(count)
+    print(correct/count)
+    A[2]
     df = pd.read_csv("../APIs/data/covid.csv")
     count = np.zeros((1000, 4))
     day_1 = datetime.strptime("2019-10-10", "20%y-%m-%d")
