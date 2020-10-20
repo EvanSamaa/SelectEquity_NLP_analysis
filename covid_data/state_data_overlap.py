@@ -31,7 +31,7 @@ def overlap_sentiscore(daily_states_data, state, senti_score, media_name):
     roll7_state_data.plot(color='red', ax=ax)
     roll7_senti_score.plot(color='green', ax=ax)
     # ax.legend(['7-day running average of cases', 'actual daily cases'])
-    ax.legend(['7-day running average of cases', '7-day running avg of Sentiment Scores', 'actual daily cases'])
+    ax.legend(['7-day running average of cases', '7-day running avg of %s Sentiment Scores'%media_name, 'actual daily cases'])
     plt.grid()
     ax.xaxis_date()
     my_xLocator = mticker.MultipleLocator(7)
@@ -44,10 +44,10 @@ def overlap_sentiscore(daily_states_data, state, senti_score, media_name):
     # plt.ylabel('Daily new cases')
     # plt.show()
     try:
-        plt.savefig('./plots/overlap/%s/senti_score_%s.png' % (state, media_name))
+        plt.savefig('./plots/overlap/senti_score/%s/senti_score_%s.png' % (state, media_name))
     except FileNotFoundError:
-        mkdir_p("./plots/overlap/%s" % state)
-        plt.savefig('./plots/overlap/%s/senti_score_%s.png' % (state, media_name))
+        mkdir_p("./plots/overlap/senti_score/%s" % state)
+        plt.savefig('./plots/overlap/senti_score/%s/senti_score_%s.png' % (state, media_name))
 
 
 if __name__ == "__main__":
@@ -75,10 +75,12 @@ if __name__ == "__main__":
     media_dict = {"nyt": nyt_score_df, "cnn": cnn_score_df, "ft": ft_score_df, "guardian": guardian_score_df}
 
     # select state of interest
-    state_of_interest = 'New York'
+    state_of_interest = 'Texas'
 
-    # select media of interest
-    media = "nyt"
+    # Option 1: plot sentiment scores from all media
+    for key in media_dict.keys():
+        overlap_sentiscore(daily_states_data, state_of_interest, media_dict[key], key)
 
-    # select plotting options
-    overlap_sentiscore(daily_states_data, state_of_interest, media_dict[media], media)
+    # Option 2: select media of interest and produce 1 plot only
+    # media = "nyt"
+    # overlap_sentiscore(daily_states_data, state_of_interest, media_dict[media], media)
