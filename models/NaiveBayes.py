@@ -86,14 +86,7 @@ def train_bayes(file_csv):
     accuracy = nltk.classify.util.accuracy(classifier, test_set)
     print(accuracy)
     save_classifier(classifier, "./NB_baseline.pickle")
-
-
-if __name__ == "__main__":
-
-    # plottt = np.load("bays_sentiment.npy")
-    # plt.plot(plottt)
-    # plt.show()
-    # train_bayes("../APIs/data/training.1600000.processed.noemoticon.csv")
+def frequency_count():
     count = np.zeros((1000, 4))
     df = pd.read_csv("../APIs/data/covid_new_keyword.csv")
     day_1 = datetime.strptime("2019-10-10", "20%y-%m-%d")
@@ -108,8 +101,52 @@ if __name__ == "__main__":
         elif row['publisher'] == "The Guardian":
             count[date_diff, 3] += 1
     np.save("frequency_count.npy", count)
-    A[2]
+def moving_average(a, n=3) :
+    ret = np.cumsum(a, dtype=float)
+    ret[n:] = ret[n:] - ret[:-n]
+    return ret[n - 1:] / n
+if __name__ == "__main__":
 
+    # plottt = np.load("bays_sentiment.npy")
+    # plt.plot(plottt)
+    # plt.show()
+    # train_bayes("../APIs/data/training.1600000.processed.noemoticon.csv")
+    # plt.title("The Guardian")
+    count = np.load("bays_sentiment.npy")
+    avg_count = moving_average(count, 7)
+    # plt.plot(np.arange(0, 370), count[:370, 0])
+    # plt.plot(np.arange(0, 370), count[:370, 1])
+    # plt.plot(np.arange(0, 370), count[:370, 2])
+    # plt.plot(np.arange(0, 370), count[:370, 3])
+    # plt.show()
+    plt.subplot(2, 2, 1)
+    plt.title("CNN")
+    plt.plot(np.arange(0, 370), count[:370, 0])
+    plt.subplot(2, 2, 2)
+    plt.title("Financial Times")
+    plt.plot(np.arange(0, 370), count[:370, 1])
+    plt.subplot(2, 2, 3)
+    plt.title("NY Times")
+    plt.plot(np.arange(0, 370), count[:370, 2])
+    plt.subplot(2, 2, 4)
+    plt.title("Guardian News")
+    plt.plot(np.arange(0, 370), count[:370, 3])
+    plt.show()
+    print(avg_count.shape)
+    plt.subplot(2,2,1)
+    plt.title("CNN")
+    plt.plot(np.arange(0, 370), moving_average(count[:,0], 7)[:370])
+    plt.subplot(2,2,2)
+    plt.title("Financial Times")
+    plt.plot(np.arange(0, 370), moving_average(count[:,1], 7)[:370])
+    plt.subplot(2,2,3)
+    plt.title("NY Times")
+    plt.plot(np.arange(0, 370), moving_average(count[:,2], 7)[:370])
+    plt.subplot(2,2,4)
+    plt.title("Guardian News")
+    plt.plot(np.arange(0, 370), moving_average(count[:,3], 7)[:370])
+    plt.show()
+    A[1]
     model = NBClassifier("NB_baseline.pickle")
     df = pd.read_csv("../APIs/data/covid.csv")
     count = np.zeros((1000, 4))
@@ -152,8 +189,4 @@ if __name__ == "__main__":
                     count[date_diff, 3] = count[date_diff, 3] - 1
             except:
                 print(row["title"])
-    # plt.title("The Guardian")
-    # plt.plot(np.arange(0, 1000), count[:, 0])
-    # plt.plot(np.arange(0, 1000), count[:, 1])
-    # plt.plot(np.arange(0, 1000), count[:, 2])
     np.save("bays_sentiment.npy", count)
