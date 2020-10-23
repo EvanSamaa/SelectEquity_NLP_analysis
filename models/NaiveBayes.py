@@ -94,8 +94,21 @@ if __name__ == "__main__":
     # plt.plot(plottt)
     # plt.show()
     # train_bayes("../APIs/data/training.1600000.processed.noemoticon.csv")
-
-
+    count = np.zeros((1000, 4))
+    df = pd.read_csv("../APIs/data/covid_new_keyword.csv")
+    day_1 = datetime.strptime("2019-10-10", "20%y-%m-%d")
+    for index, row in df.iterrows():
+        date_diff = (datetime.strptime(row['date'], "20%y-%m-%d") - day_1).days
+        if row['publisher'] == "CNN":
+            count[date_diff, 0] += 1
+        elif row['publisher'] == "FinancialTimes":
+            count[date_diff, 1] += 1
+        elif row['publisher'] == "NYtimes":
+            count[date_diff, 2] += 1
+        elif row['publisher'] == "The Guardian":
+            count[date_diff, 3] += 1
+    np.save("frequency_count.npy", count)
+    A[2]
 
     model = NBClassifier("NB_baseline.pickle")
     df = pd.read_csv("../APIs/data/covid.csv")
@@ -104,7 +117,6 @@ if __name__ == "__main__":
     for index, row in df.iterrows():
         date_diff = (datetime.strptime(row['date'], "20%y-%m-%d") - day_1).days
         if row['publisher'] == "CNN":
-            count[date_diff, 0] += 1
             try:
                 out = model.classify(row["title"])
                 if out == "positive":
@@ -114,7 +126,6 @@ if __name__ == "__main__":
             except:
                 print(row["title"])
         elif row['publisher'] == "FinancialTimes":
-            count[date_diff, 0] += 1
             try:
                 out = model.classify(row["title"])
                 if out == "positive":
@@ -124,7 +135,6 @@ if __name__ == "__main__":
             except:
                 print(row["title"])
         elif row['publisher'] == "NYtimes":
-            count[date_diff, 0] += 1
             try:
                 out = model.classify(row["title"])
                 if out == "positive":
@@ -134,7 +144,6 @@ if __name__ == "__main__":
             except:
                 print(row["title"])
         elif row['publisher'] == "The Guardian":
-            count[date_diff, 0] += 1
             try:
                 out = model.classify(row["title"])
                 if out == "positive":
