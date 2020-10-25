@@ -12,10 +12,7 @@ def convert2df(score, covid_day_1, covid_day_end, senti_day_1, metric_name):
     diff = (covid_day_1 - senti_day_1).days
     duration = (covid_day_end - covid_day_1).days
     temp = score[diff:]
-    if metric_name == "senti_score":
-        temp = temp[:duration + 1] * 100  # 100 for state, 1000 for US
-    elif metric_name == "doc frequency":
-        temp = temp[:duration + 1] * 30  # 30 for state, 300 for US
+    temp = temp[:duration + 1]  # 100 for state, 1000 for US
 
     index = pd.date_range(covid_day_1, covid_day_end, freq='D').strftime(
         '%m/%d/%y')
@@ -44,96 +41,38 @@ def load_metric(path, covid_day_1, covid_day_end, metric_day_1, metric_name):
     return media_dict
 
 
-# overlap sentiment score and state covid data
-def overlap_sentiscore(daily_states_data, state, senti_score, media_name):
-    daily_onestate_data = daily_states_data[[state]]
-    roll7_state_data = daily_onestate_data.rolling(7).mean()
-    roll7_senti_score = senti_score.rolling(7).mean()
-
-    fig, ax = plt.subplots(figsize=(20, 10))
-    daily_onestate_data.plot(kind='bar', ax=ax)
-    roll7_state_data.plot(color='red', ax=ax)
-    roll7_senti_score.plot(color='green', ax=ax)
-    # ax.legend(['7-day running average of cases', 'actual daily cases'])
-    ax.legend(['7-day running average of cases',
-               '7-day running avg of %s Sentiment Scores' % media_name,
-               'actual daily cases'])
-    plt.grid()
-    ax.xaxis_date()
-    my_xLocator = mticker.MultipleLocator(7)
-    ax.xaxis.set_major_locator(my_xLocator)
-    my_yLocator = mticker.MultipleLocator(500)
-    ax.yaxis.set_major_locator(my_yLocator)
-    fig.autofmt_xdate()
-    plt.title("Daily Cases and 7-Day Running Average for %s State" % state)
-    plt.xlabel('Dates')
-    # plt.ylabel('Daily new cases')
-    # plt.show()
-    try:
-        plt.savefig('./plots/overlap/senti_score/%s/senti_score_%s.png' % (
-        state, media_name))
-    except FileNotFoundError:
-        mkdir_p("./plots/overlap/senti_score/%s" % state)
-        plt.savefig('./plots/overlap/senti_score/%s/senti_score_%s.png' % (
-        state, media_name))
-
-
-# overlap sentiment score and state covid data
-def overlap_sentiscore_us(daily_us_data, senti_score, media_name):
-    roll7_us_data = daily_us_data.rolling(7).mean()
-    roll7_senti_score = senti_score.rolling(7).mean()
-
-    fig, ax = plt.subplots(figsize=(20, 10))
-    daily_us_data.plot(kind='bar', ax=ax)
-    roll7_us_data.plot(color='red', ax=ax)
-    roll7_senti_score.plot(color='green', ax=ax)
-    # ax.legend(['7-day running average of cases', 'actual daily cases'])
-    ax.legend(['7-day running average of cases',
-               '7-day running avg of %s Sentiment Scores' % media_name,
-               'actual daily cases'])
-    plt.grid()
-    ax.xaxis_date()
-    my_xLocator = mticker.MultipleLocator(7)
-    ax.xaxis.set_major_locator(my_xLocator)
-    my_yLocator = mticker.MultipleLocator(2000)
-    ax.yaxis.set_major_locator(my_yLocator)
-    fig.autofmt_xdate()
-    plt.title("Daily Cases and 7-Day Running Average for the US")
-    plt.xlabel('Dates')
-    # plt.ylabel('Daily new cases')
-    # plt.show()
-    try:
-        plt.savefig(
-            './plots/overlap/senti_score/US/senti_score_%s.png' % media_name)
-    except FileNotFoundError:
-        mkdir_p("./plots/overlap/senti_score/US")
-        plt.savefig(
-            './plots/overlap/senti_score/US/senti_score_%s.png' % media_name)
-
-
 # overlap key terms' document frequency with state covid data
 def overlap_docfreq(daily_states_data, state, docfreq, media_name):
     daily_onestate_data = daily_states_data[[state]]
     roll7_state_data = daily_onestate_data.rolling(7).mean()
     roll7_docfreq = docfreq.rolling(7).mean()
 
+    # normalize the scale of docfreq data
+    roll7_covid_np = roll7_state_data.to_numpy()[7:]    # convert to np
+    roll7_metric_np = roll7_docfreq.to_numpy()[8:]
+    covid_max_idx = np.argmax(roll7_covid_np)       # find idx with max val.
+    metric_max_idx = np.argmax(roll7_metric_np)
+    covid_max = roll7_covid_np[covid_max_idx][0]    # find max val.
+    metric_max = roll7_metric_np[metric_max_idx][0]
+    norm_roll7_docfreq = roll7_docfreq * (covid_max/metric_max)
+
     fig, ax = plt.subplots(figsize=(20, 10))
     daily_onestate_data.plot(kind='bar', ax=ax)
     roll7_state_data.plot(color='red', ax=ax)
-    roll7_docfreq.plot(color='green', ax=ax)
+    norm_roll7_docfreq.plot(color='green', ax=ax)
     ax.legend(['7-day running average of cases',
-               '7-day running avg of %s doc frequency' % media_name,
+               'Normalized 7-day running avg of %s doc frequency' % media_name,
                'actual daily cases'])
     plt.grid()
     ax.xaxis_date()
     my_xLocator = mticker.MultipleLocator(7)
     ax.xaxis.set_major_locator(my_xLocator)
-    my_yLocator = mticker.MultipleLocator(500)
+    my_yLocator = mticker.MultipleLocator(1000)
     ax.yaxis.set_major_locator(my_yLocator)
     fig.autofmt_xdate()
     plt.title("Daily Cases and 7-Day Running Average for %s State" % state)
     plt.xlabel('Dates')
-    # plt.ylabel('Daily new cases')
+    plt.ylabel('Daily new cases & Normalized document frequency')
     # plt.show()
     try:
         plt.savefig(
@@ -149,12 +88,21 @@ def overlap_docfreq_us(daily_us_data, docfreq, media_name):
     roll7_us_data = daily_us_data.rolling(7).mean()
     roll7_docfreq = docfreq.rolling(7).mean()
 
+    # normalize the scale of docfreq data
+    roll7_covid_np = roll7_us_data.to_numpy()[7:]    # convert to np
+    roll7_metric_np = roll7_docfreq.to_numpy()[8:]
+    covid_max_idx = np.argmax(roll7_covid_np)       # find idx with max val.
+    metric_max_idx = np.argmax(roll7_metric_np)
+    covid_max = roll7_covid_np[covid_max_idx][0]    # find max val.
+    metric_max = roll7_metric_np[metric_max_idx][0]
+    norm_roll7_docfreq = roll7_docfreq * (covid_max/metric_max)
+
     fig, ax = plt.subplots(figsize=(20, 10))
     daily_us_data.plot(kind='bar', ax=ax)
     roll7_us_data.plot(color='red', ax=ax)
-    roll7_docfreq.plot(color='green', ax=ax)
+    norm_roll7_docfreq.plot(color='green', ax=ax)
     ax.legend(['7-day running average of cases',
-               '7-day running avg of %s doc frequency' % media_name,
+               'Normalized 7-day running avg of %s doc frequency' % media_name,
                'actual daily cases'])
     plt.grid()
     ax.xaxis_date()
@@ -165,13 +113,97 @@ def overlap_docfreq_us(daily_us_data, docfreq, media_name):
     fig.autofmt_xdate()
     plt.title("Daily Cases and 7-Day Running Average for US")
     plt.xlabel('Dates')
-    # plt.ylabel('Daily new cases')
+    plt.ylabel('Daily new cases & Normalized document frequency')
     # plt.show()
     try:
         plt.savefig('./plots/overlap/doc_freq/US/docfreq_%s.png' % media_name)
     except FileNotFoundError:
         mkdir_p("./plots/overlap/doc_freq/US")
         plt.savefig('./plots/overlap/doc_freq/US/docfreq_%s.png' % media_name)
+
+
+# overlap sentiment score and state covid data
+def overlap_sentiscore(daily_states_data, state, senti_score, media_name):
+    daily_onestate_data = daily_states_data[[state]]
+    roll7_state_data = daily_onestate_data.rolling(7).mean()
+    roll7_senti_score = senti_score.rolling(7).mean()
+
+    # normalize the scale of docfreq data
+    roll7_covid_np = roll7_state_data.to_numpy()[7:]    # convert to np
+    roll7_metric_np = np.absolute(roll7_senti_score.to_numpy()[8:])
+    covid_max_idx = np.argmax(roll7_covid_np)       # find idx with max val.
+    metric_max_idx = np.argmax(roll7_metric_np)
+    covid_max = roll7_covid_np[covid_max_idx][0]    # find max val.
+    metric_max = roll7_metric_np[metric_max_idx][0]
+    norm_roll7_senti_score = roll7_senti_score * (covid_max/metric_max)
+
+    fig, ax = plt.subplots(figsize=(20, 10))
+    daily_onestate_data.plot(kind='bar', ax=ax)
+    roll7_state_data.plot(color='red', ax=ax)
+    norm_roll7_senti_score.plot(color='green', ax=ax)
+    # ax.legend(['7-day running average of cases', 'actual daily cases'])
+    ax.legend(['7-day running average of cases',
+               'Normalized 7-day running avg of %s Sentiment Scores' % media_name,
+               'actual daily cases'])
+    plt.grid()
+    my_xLocator = mticker.MultipleLocator(7)
+    ax.xaxis.set_major_locator(my_xLocator)
+    my_yLocator = mticker.MultipleLocator(1000)
+    ax.yaxis.set_major_locator(my_yLocator)
+    fig.autofmt_xdate()
+    plt.title("Daily Cases and 7-Day Running Average for %s State" % state)
+    plt.xlabel('Dates')
+    plt.ylabel('Daily new cases & Normalized sentiment score')
+    # plt.show()
+    try:
+        plt.savefig('./plots/overlap/senti_score/%s/senti_score_%s.png' % (
+        state, media_name))
+    except FileNotFoundError:
+        mkdir_p("./plots/overlap/senti_score/%s" % state)
+        plt.savefig('./plots/overlap/senti_score/%s/senti_score_%s.png' % (
+        state, media_name))
+
+
+# overlap sentiment score and state covid data
+def overlap_sentiscore_us(daily_us_data, senti_score, media_name):
+    roll7_us_data = daily_us_data.rolling(7).mean()
+    roll7_senti_score = senti_score.rolling(7).mean()
+
+    # normalize the scale of docfreq data
+    roll7_covid_np = roll7_us_data.to_numpy()[7:]    # convert to np
+    roll7_metric_np = np.absolute(roll7_senti_score.to_numpy()[8:])
+    covid_max_idx = np.argmax(roll7_covid_np)       # find idx with max val.
+    metric_max_idx = np.argmax(roll7_metric_np)
+    covid_max = roll7_covid_np[covid_max_idx][0]    # find max val.
+    metric_max = roll7_metric_np[metric_max_idx][0]
+    norm_roll7_senti_score = roll7_senti_score * (covid_max/metric_max)
+
+    fig, ax = plt.subplots(figsize=(20, 10))
+    daily_us_data.plot(kind='bar', ax=ax)
+    roll7_us_data.plot(color='red', ax=ax)
+    norm_roll7_senti_score.plot(color='green', ax=ax)
+    # ax.legend(['7-day running average of cases', 'actual daily cases'])
+    ax.legend(['7-day running average of cases',
+               'Normalized 7-day running avg of %s Sentiment Scores' % media_name,
+               'actual daily cases'])
+    plt.grid()
+    ax.xaxis_date()
+    my_xLocator = mticker.MultipleLocator(7)
+    ax.xaxis.set_major_locator(my_xLocator)
+    my_yLocator = mticker.MultipleLocator(2000)
+    ax.yaxis.set_major_locator(my_yLocator)
+    fig.autofmt_xdate()
+    plt.title("Daily Cases and 7-Day Running Average for the US")
+    plt.xlabel('Dates')
+    plt.ylabel('Daily new cases & Normalized sentiment score')
+    # plt.show()
+    try:
+        plt.savefig(
+            './plots/overlap/senti_score/US/senti_score_%s.png' % media_name)
+    except FileNotFoundError:
+        mkdir_p("./plots/overlap/senti_score/US")
+        plt.savefig(
+            './plots/overlap/senti_score/US/senti_score_%s.png' % media_name)
 
 
 if __name__ == "__main__":
@@ -201,63 +233,57 @@ if __name__ == "__main__":
                                      metric_day_1, metric_name="doc frequency")
 
     # -------------------------------------------------------------------------#
-    #                        Metric 1: Sentiment Score                         #
+    #                Metric 1: Key Terms' Document Frequency                   #
     # -------------------------------------------------------------------------#
     # select state of interest
-    state_of_interest = 'New York'
-
+    state_of_interest = 'Georgia'
     # select plotting option
-    m1_option = 0  # choose [1, 2, 3, 4], 0 for pass
+    m1_option = 1 # choose [1, 2, 3, 4], 0 for pass
 
     # Option 1 (state): plot sentiment scores from all media
     if m1_option == 1:
-        for key in senti_media_dict.keys():
-            overlap_sentiscore(daily_states_data, state_of_interest,
-                               senti_media_dict[key], key)
-
-    # Option 2 (state): select media of interest and produce 1 plot only
-    elif m1_option == 2:
-        media = "cnn"
-        overlap_sentiscore(daily_states_data, state_of_interest,
-                           senti_media_dict[media], media)
-
-    # Option 3 (us): plot sentiment scores from all media
-    elif m1_option == 3:
-        for key in senti_media_dict.keys():
-            overlap_sentiscore_us(daily_us_data, senti_media_dict[key], key)
-
-    # Option 4 (us): select media of interest and produce 1 plot only
-    elif m1_option == 4:
-        media = "cnn"
-        overlap_sentiscore_us(daily_us_data, senti_media_dict[media], media)
-
-    # -------------------------------------------------------------------------#
-    #                Metric 2: Key Terms' Document Frequency                   #
-    # -------------------------------------------------------------------------#
-    # select state of interest
-    state_of_interest = 'New York'
-
-    # select plotting option
-    m2_option = 1 # choose [1, 2, 3, 4], 0 for pass
-
-    # Option 1 (state): plot sentiment scores from all media
-    if m2_option == 1:
         for key in docfreq_media_dict.keys():
             overlap_docfreq(daily_states_data, state_of_interest,
                             docfreq_media_dict[key], key)
-
     # Option 2 (state): select media of interest and produce 1 plot only
-    elif m2_option == 2:
+    elif m1_option == 2:
         media = "cnn"
         overlap_docfreq(daily_states_data, state_of_interest,
                         docfreq_media_dict[media], media)
-
     # Option 3 (US): plot sentiment scores from all media
-    elif m2_option == 3:
+    elif m1_option == 3:
         for key in docfreq_media_dict.keys():
             overlap_docfreq_us(daily_us_data, docfreq_media_dict[key], key)
-
     # Option 4 (US): select media of interest and produce 1 plot only
-    elif m2_option == 4:
+    elif m1_option == 4:
         media = "cnn"
         overlap_docfreq_us(daily_us_data, docfreq_media_dict[media], media)
+
+    # -------------------------------------------------------------------------#
+    #                        Metric 2: Sentiment Score                         #
+    # -------------------------------------------------------------------------#
+    # select state of interest
+    state_of_interest = 'New York'
+    # select plotting option
+    m2_option = 0  # choose [1, 2, 3, 4], 0 for pass
+
+    # Option 1 (state): plot sentiment scores from all media
+    if m2_option == 1:
+        for key in senti_media_dict.keys():
+            overlap_sentiscore(daily_states_data, state_of_interest,
+                               senti_media_dict[key], key)
+    # Option 2 (state): select media of interest and produce 1 plot only
+    elif m2_option == 2:
+        media = "cnn"
+        overlap_sentiscore(daily_states_data, state_of_interest,
+                           senti_media_dict[media], media)
+    # Option 3 (us): plot sentiment scores from all media
+    elif m2_option == 3:
+        for key in senti_media_dict.keys():
+            overlap_sentiscore_us(daily_us_data, senti_media_dict[key], key)
+    # Option 4 (us): select media of interest and produce 1 plot only
+    elif m2_option == 4:
+        media = "cnn"
+        overlap_sentiscore_us(daily_us_data, senti_media_dict[media], media)
+
+
