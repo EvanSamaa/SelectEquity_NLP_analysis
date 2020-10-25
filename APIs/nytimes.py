@@ -43,6 +43,7 @@ def search_ny_times(query, earliest_date="2000-01-01", latest_date=""):
                         sub_json["raw_body"] = article["abstract"] + "\n" + article["lead_paragraph"]
                         sub_json["url"] = article["web_url"]
                         sub_json["publisher"] = "NYtimes"
+                        sub_json["keyword"] = query
                         rtv_dict[article["_id"]] = sub_json
                 else:
                     break

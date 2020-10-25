@@ -63,6 +63,7 @@ def financial_times_scrapping(keyword, earliest_date="2000-01-01", latest_date="
             sub_json["raw_body"] = ""
         sub_json["url"] = a["location"]["uri"]
         sub_json["publisher"] = "FinancialTimes"
+        sub_json["keyword"] = keyword
         date_of_interest = dt.strptime(sub_json["date"], "20%y-%m-%d")
         if date_of_interest >= ealiest_date:
             if latest_date == "":
@@ -94,6 +95,7 @@ def financial_times_scrapping(keyword, earliest_date="2000-01-01", latest_date="
                 sub_json["raw_body"] = ""
             sub_json["url"] = a["location"]["uri"]
             sub_json["publisher"] = "FinancialTimes"
+            sub_json["keyword"] = keyword
             date_of_interest = dt.strptime(sub_json["date"], "20%y-%m-%d")
             if date_of_interest >= ealiest_date:
                 if latest_date == "":

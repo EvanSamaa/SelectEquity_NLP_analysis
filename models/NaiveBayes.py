@@ -107,86 +107,39 @@ def moving_average(a, n=3) :
     return ret[n - 1:] / n
 if __name__ == "__main__":
 
-    # plottt = np.load("bays_sentiment.npy")
+    # plottt = np.load("corona virus_article_count.npy")
     # plt.plot(plottt)
     # plt.show()
     # train_bayes("../APIs/data/training.1600000.processed.noemoticon.csv")
     # plt.title("The Guardian")
-    count = np.load("bays_sentiment.npy")
-    avg_count = moving_average(count, 7)
-    # plt.plot(np.arange(0, 370), count[:370, 0])
-    # plt.plot(np.arange(0, 370), count[:370, 1])
-    # plt.plot(np.arange(0, 370), count[:370, 2])
-    # plt.plot(np.arange(0, 370), count[:370, 3])
+    # count = np.load("novel virus_article_count.npy")
+    # plt.subplot(2,2,1)
+    # plt.title("CNN")
+    # plt.plot(np.arange(0, 370), count[:,0][:370])
+    # plt.subplot(2,2,2)
+    # plt.title("Financial Times")
+    # plt.plot(np.arange(0, 370), count[:,1][:370])
+    # plt.subplot(2,2,3)
+    # plt.title("NY Times")
+    # plt.plot(np.arange(0, 370), count[:,2][:370])
+    # plt.subplot(2,2,4)
+    # plt.title("Guardian News")
+    # plt.plot(np.arange(0, 370), count[:,3][:370])
     # plt.show()
-    plt.subplot(2, 2, 1)
-    plt.title("CNN")
-    plt.plot(np.arange(0, 370), count[:370, 0])
-    plt.subplot(2, 2, 2)
-    plt.title("Financial Times")
-    plt.plot(np.arange(0, 370), count[:370, 1])
-    plt.subplot(2, 2, 3)
-    plt.title("NY Times")
-    plt.plot(np.arange(0, 370), count[:370, 2])
-    plt.subplot(2, 2, 4)
-    plt.title("Guardian News")
-    plt.plot(np.arange(0, 370), count[:370, 3])
-    plt.show()
-    print(avg_count.shape)
-    plt.subplot(2,2,1)
-    plt.title("CNN")
-    plt.plot(np.arange(0, 370), moving_average(count[:,0], 7)[:370])
-    plt.subplot(2,2,2)
-    plt.title("Financial Times")
-    plt.plot(np.arange(0, 370), moving_average(count[:,1], 7)[:370])
-    plt.subplot(2,2,3)
-    plt.title("NY Times")
-    plt.plot(np.arange(0, 370), moving_average(count[:,2], 7)[:370])
-    plt.subplot(2,2,4)
-    plt.title("Guardian News")
-    plt.plot(np.arange(0, 370), moving_average(count[:,3], 7)[:370])
-    plt.show()
-    A[1]
-    model = NBClassifier("NB_baseline.pickle")
-    df = pd.read_csv("../APIs/data/covid.csv")
+    # A[1]
+    # model = NBClassifier("NB_baseline.pickle")
+    df = pd.read_csv("../APIs/data/covid_by_keyword.csv")
     count = np.zeros((1000, 4))
     day_1 = datetime.strptime("2019-10-10", "20%y-%m-%d")
     for index, row in df.iterrows():
-        date_diff = (datetime.strptime(row['date'], "20%y-%m-%d") - day_1).days
-        if row['publisher'] == "CNN":
-            try:
-                out = model.classify(row["title"])
-                if out == "positive":
-                   count[date_diff, 0] = count[date_diff, 0] + 1
-                else:
-                   count[date_diff, 0] = count[date_diff, 0] - 1
-            except:
-                print(row["title"])
-        elif row['publisher'] == "FinancialTimes":
-            try:
-                out = model.classify(row["title"])
-                if out == "positive":
-                    count[date_diff, 1] = count[date_diff, 1] + 1
-                else:
-                    count[date_diff, 1] = count[date_diff, 1] - 1
-            except:
-                print(row["title"])
-        elif row['publisher'] == "NYtimes":
-            try:
-                out = model.classify(row["title"])
-                if out == "positive":
-                    count[date_diff, 2] = count[date_diff, 2] + 1
-                else:
-                    count[date_diff, 2] = count[date_diff, 2] - 1
-            except:
-                print(row["title"])
-        elif row['publisher'] == "The Guardian":
-            try:
-                out = model.classify(row["title"])
-                if out == "positive":
-                    count[date_diff, 3] = count[date_diff, 3] + 1
-                else:
-                    count[date_diff, 3] = count[date_diff, 3] - 1
-            except:
-                print(row["title"])
-    np.save("bays_sentiment.npy", count)
+        if row['keyword'] == "corona virus":
+            date_diff = (datetime.strptime(row['date'], "20%y-%m-%d") - day_1).days
+            if row['publisher'] == "CNN":
+                count[date_diff, 0]= count[date_diff, 0] + 1
+            elif row['publisher'] == "FinancialTimes":
+                count[date_diff, 1] = count[date_diff, 1] + 1
+            elif row['publisher'] == "NYtimes":
+                count[date_diff, 2] = count[date_diff, 2] + 1
+            elif row['publisher'] == "The Guardian":
+                count[date_diff, 3] = count[date_diff, 2] + 1
+    np.save("corona virus_article_count.npy", count)

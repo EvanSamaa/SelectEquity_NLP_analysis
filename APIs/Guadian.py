@@ -61,6 +61,7 @@ def scrape_guardien(query, earliest_date="2000-01-01", latest_date=""):
                 sub_json["raw_body"] = article["fields"]["body"]
                 sub_json["url"] = article["webUrl"]
                 sub_json["publisher"] = "The Guardian"
+                sub_json["keyword"] = query
                 output_json[article["id"]] = sub_json
         elif data["response"]['status'] == "error":
             error_message = data["response"]["message"]
@@ -99,6 +100,7 @@ def scrape_guardien(query, earliest_date="2000-01-01", latest_date=""):
                 sub_json["raw_body"] = article["fields"]["body"]
                 sub_json["url"] = article["webUrl"]
                 sub_json["publisher"] = "The Guardian"
+                sub_json["keyword"] = query
                 output_json[article["id"]] = sub_json
         elif data["response"]['status'] == "error":
             error_message = data["response"]["message"]
