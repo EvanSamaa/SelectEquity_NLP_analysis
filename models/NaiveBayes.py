@@ -110,9 +110,11 @@ def moving_average(a, n=3) :
 if __name__ == "__main__":
     # polarty is used in this paper
     #   https://webdocs.cs.ualberta.ca/~zaiane/postscript/dawak17.pdf
-    # plottt = np.load("corona virus_article_count.npy")
-    # plt.plot(plottt)
-    # plt.show()
+    plottt = np.load("DifferentSentimentScoreAggregation_body/pos_prob-neg_prob_time_series.npy")
+    for i in [0, 1, 2, 3]:
+        plt.plot(moving_average(plottt[:, i], 7)[:370])
+        plt.show()
+    A[2]
     # train_bayes("../APIs/data/training.1600000.processed.noemoticon.csv")
     # plt.title("The Guardian")
     model = NBClassifier("NB_baseline.pickle")
