@@ -22,9 +22,11 @@ class NBClassifier():
     def classify(self, phrase):
         tokens = self.tokenize(phrase)
         my_dict = dict([(word, True) for word in tokens])
-        out = self.model.classify(my_dict)
-        print(out)
-        return out
+        out = self.model.prob_classify(my_dict)
+        pos_prob = out.prob("positive")
+        neg_prob = out.prob("negative")
+
+        return pos_prob, neg_prob
     def tokenize(self, phrase):
         words = phrase
         words = word_tokenize(words)
@@ -106,40 +108,57 @@ def moving_average(a, n=3) :
     ret[n:] = ret[n:] - ret[:-n]
     return ret[n - 1:] / n
 if __name__ == "__main__":
-
+    # polarty is used in this paper
+    #   https://webdocs.cs.ualberta.ca/~zaiane/postscript/dawak17.pdf
     # plottt = np.load("corona virus_article_count.npy")
     # plt.plot(plottt)
     # plt.show()
     # train_bayes("../APIs/data/training.1600000.processed.noemoticon.csv")
     # plt.title("The Guardian")
-    # count = np.load("novel virus_article_count.npy")
-    # plt.subplot(2,2,1)
-    # plt.title("CNN")
-    # plt.plot(np.arange(0, 370), count[:,0][:370])
-    # plt.subplot(2,2,2)
-    # plt.title("Financial Times")
-    # plt.plot(np.arange(0, 370), count[:,1][:370])
-    # plt.subplot(2,2,3)
-    # plt.title("NY Times")
-    # plt.plot(np.arange(0, 370), count[:,2][:370])
-    # plt.subplot(2,2,4)
-    # plt.title("Guardian News")
-    # plt.plot(np.arange(0, 370), count[:,3][:370])
-    # plt.show()
-    # A[1]
-    # model = NBClassifier("NB_baseline.pickle")
+    model = NBClassifier("NB_baseline.pickle")
     df = pd.read_csv("../APIs/data/covid_by_keyword.csv")
     count = np.zeros((1000, 4))
+    pos_count = np.zeros((1000, 4))
+    neg_count = np.zeros((1000, 4))
+    cts_sum = np.zeros((1000, 4))
     day_1 = datetime.strptime("2019-10-10", "20%y-%m-%d")
     for index, row in df.iterrows():
-        if row['keyword'] == "corona virus":
-            date_diff = (datetime.strptime(row['date'], "20%y-%m-%d") - day_1).days
+        date_diff = (datetime.strptime(row['date'], "20%y-%m-%d") - day_1).days
+        try:
+            pos_prob, neg_prob = model.classify(row["raw_body"])
             if row['publisher'] == "CNN":
                 count[date_diff, 0]= count[date_diff, 0] + 1
+                if pos_prob > 0.5:
+                    pos_count[date_diff, 0] += 1
+                else:
+                    neg_count[date_diff, 0] += 1
+                cts_sum[date_diff, 0] += pos_prob-0.5
             elif row['publisher'] == "FinancialTimes":
                 count[date_diff, 1] = count[date_diff, 1] + 1
+                if pos_prob > 0.5:
+                    pos_count[date_diff, 1] += 1
+                else:
+                    neg_count[date_diff, 1] += 1
+                cts_sum[date_diff, 1] += pos_prob - 0.5
             elif row['publisher'] == "NYtimes":
                 count[date_diff, 2] = count[date_diff, 2] + 1
+                if pos_prob > 0.5:
+                    pos_count[date_diff, 2] += 1
+                else:
+                    neg_count[date_diff, 2] += 1
+                cts_sum[date_diff, 2] += pos_prob - 0.5
             elif row['publisher'] == "The Guardian":
                 count[date_diff, 3] = count[date_diff, 2] + 1
-    np.save("corona virus_article_count.npy", count)
+                if pos_prob > 0.5:
+                    pos_count[date_diff, 3] += 1
+                else:
+                    neg_count[date_diff, 3] += 1
+                cts_sum[date_diff, 3] += pos_prob - 0.5
+        except:
+            print(row)
+    polarity = np.divide((pos_count - neg_count), count+1)
+    np.save("polarity_time_series.npy", polarity)
+    np.save("positive_articles_time_series.npy", pos_count)
+    np.save("negative_articles_time_series.npy", neg_count)
+    np.save("pos-neg_time_series.npy", pos_count-neg_count)
+    np.save("pos_prob-neg_prob_time_series.npy", pos_count - neg_count)
