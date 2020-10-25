@@ -51,6 +51,7 @@ def query_CNN_by_keyword_alt(keyword, earliest_date="2000-01-01", latest_date=""
                     sub_json["raw_body"] = a["body"]
                     sub_json["url"] = a["url"]
                     sub_json["publisher"] = "CNN"
+                    sub_json["keyword"] = keyword
                     rtv[a['_id']] = sub_json
             # calculating stopping condition
             oldest_article_date_this_batch = r['result'][0]['firstPublishDate']
