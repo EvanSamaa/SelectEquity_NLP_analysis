@@ -110,13 +110,44 @@ def moving_average(a, n=3) :
 if __name__ == "__main__":
     # polarty is used in this paper
     #   https://webdocs.cs.ualberta.ca/~zaiane/postscript/dawak17.pdf
-    plottt = np.load("DifferentSentimentScoreAggregation_body/pos_prob-neg_prob_time_series.npy")
-    for i in [0, 1, 2, 3]:
-        plt.plot(moving_average(plottt[:, i], 7)[:370])
-        plt.show()
+
+    df = pd.read_excel("alldata.xlsx")
+    TP = 0
+    TN = 0
+    FP = 0
+    FN = 0
+    model = NBClassifier("NB_baseline.pickle")
+    for index, row in df.iterrows():
+        pos_prob, neg_prob = model.classify(row["Title"])
+        if pos_prob >= 0.5 and row["Label"] == "pos":
+            TP = TP + 1
+        elif pos_prob >= 0.5 and row["Label"] == "neg":
+            FP = FP + 1
+        elif neg_prob >= 0.5 and row["Label"] == "pos":
+            FN = FN + 1
+        elif neg_prob >= 0.5 and row["Label"] == "neg":
+            TN = TN + 1
+    print(TP, TN, FP, FN)
+
     A[2]
+
     # train_bayes("../APIs/data/training.1600000.processed.noemoticon.csv")
     # plt.title("The Guardian")
+    # figure, axes = plt.subplots(nrows=3, ncols=1)
+    # count = np.load("DifferentKeyWord/novel virus_article_count.npy")
+    # axes[0].plot(count.sum(axis=1)[:370])
+    # axes[0].set_title("novel virus")
+    # count = np.load("DifferentKeyWord/SARS_article_count.npy")
+    # axes[1].set_ylabel("Number of Articles")
+    # axes[1].set_title("SARS")
+    # axes[1].plot(count.sum(axis=1)[:370])
+    # count = np.load("DifferentKeyWord/covid-19_article_count.npy")
+    # axes[2].set_title("covid-19")
+    # axes[2].plot(count.sum(axis=1)[:370])
+    # figure.tight_layout(pad=1.0)
+    # plt.xlabel("Days since Oct 10 2019")
+    # plt.show()
+    # A[2]
     model = NBClassifier("NB_baseline.pickle")
     df = pd.read_csv("../APIs/data/covid_by_keyword.csv")
     count = np.zeros((1000, 4))
@@ -127,7 +158,7 @@ if __name__ == "__main__":
     for index, row in df.iterrows():
         date_diff = (datetime.strptime(row['date'], "20%y-%m-%d") - day_1).days
         try:
-            pos_prob, neg_prob = model.classify(row["raw_body"])
+            pos_prob, neg_prob = model.classify(row["raw_body"] + " " + row["title"])
             if row['publisher'] == "CNN":
                 count[date_diff, 0]= count[date_diff, 0] + 1
                 if pos_prob > 0.5:
