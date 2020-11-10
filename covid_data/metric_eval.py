@@ -216,8 +216,8 @@ if __name__ == "__main__":
     daily_us_data = us_data.diff()  # daily cases of US
 
     # .npy file path of metric data
-    senti_path = "../models/bays_sentiment.npy"
-    docfreq_path = "../models/frequency_count.npy"
+    senti_path = "../models/DifferentKeyWord/bays_sentiment.npy"
+    docfreq_path = "../models/DifferentKeyWord/frequency_count.npy"
 
     # select dates
     metric_day_1 = datetime.strptime("10/10/19", "%m/%d/%y")

@@ -218,8 +218,9 @@ if __name__ == "__main__":
     daily_us_data = us_data.diff()  # daily cases of US
 
     # .npy file path of metric data
-    senti_path = "../models/bays_sentiment.npy"
-    docfreq_path = "../models/frequency_count.npy"
+    # senti_path = "../models/DifferentKeyWord/bays_sentiment.npy"
+    senti_path = "../models/DifferentSentimentScoreAggregation_headline/pos-neg_time_series.npy"
+    docfreq_path = "../models/DifferentKeyWord/frequency_count.npy"
 
     # select dates
     metric_day_1 = datetime.strptime("10/10/19", "%m/%d/%y")
@@ -238,7 +239,7 @@ if __name__ == "__main__":
     # select state of interest
     state_of_interest = 'Georgia'
     # select plotting option
-    m1_option = 1 # choose [1, 2, 3, 4], 0 for pass
+    m1_option = 0 # choose [1, 2, 3, 4], 0 for pass
 
     # Option 1 (state): plot sentiment scores from all media
     if m1_option == 1:
@@ -265,7 +266,7 @@ if __name__ == "__main__":
     # select state of interest
     state_of_interest = 'New York'
     # select plotting option
-    m2_option = 0  # choose [1, 2, 3, 4], 0 for pass
+    m2_option = 1  # choose [1, 2, 3, 4], 0 for pass
 
     # Option 1 (state): plot sentiment scores from all media
     if m2_option == 1:
