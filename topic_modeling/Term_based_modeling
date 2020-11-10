@@ -1,0 +1,63 @@
+import nltk
+from sklearn.feature_extraction.text import TfidfVectorizer
+import pandas as pd
+import nltk.classify.util #calculates accuracy
+from nltk.classify import NaiveBayesClassifier #imports the classifier Naive Bayes
+from nltk.corpus import movie_reviews #imports movie reviews from nltk
+from nltk.corpus import stopwords #imports stopwords from nltk
+from nltk.corpus import wordnet #imports wordnet(lexical database for the english language) from nltk
+from nltk.tokenize import RegexpTokenizer, word_tokenize
+from nltk.stem import SnowballStemmer
+import re
+import nltk
+from nltk.tokenize import TweetTokenizer
+from gensim import corpora, models
+import gensim
+def tokenize(phrase):
+    words = phrase
+    words = re.sub(r'\d+', '', words)
+    words = TweetTokenizer().tokenize(words)
+    stemmer = SnowballStemmer("english")
+    words = [token.lower() for token in words]
+    words = [word for word in words if word not in stopwords.words('english') and len(word) >= 3]
+    words = [stemmer.stem(token) for token in words]
+    return words
+def get_corpus(df_path):
+    nltk.download('movie_reviews')
+    nltk.download('punkt')
+    nltk.download('wordnet')
+    df = pd.read_csv(df_path)
+    corpus = []
+    for index, row in df.iterrows():
+        if row["publisher"] == "CNN":
+            try:
+                article = row["title"] + ". " + row["raw_body"]
+                article = tokenize(article)
+                corpus.append(article)
+            except:
+                print(row)
+    return corpus
+if __name__ == "__main__":
+    # corpus = ["welcome to stackoverflow my friend",
+    #           "my friend, don't worry, you can get help from stackoverflow"]
+    # vectorizer = TfidfVectorizer()
+    # matrix = vectorizer.fit_transform(corpus)
+    # print(matrix)
+    processed_corpus = get_corpus("../APIs/data/covid_new_keyword.csv")
+    dictionary = gensim.corpora.Dictionary(processed_corpus)
+    # dictionary.filter_extremes(no_below=0, no_above=0.5, keep_n=100000)
+    count = 0
+    bow_corpus = [dictionary.doc2bow(doc) for doc in processed_corpus]
+    tfidf = models.TfidfModel(bow_corpus)
+    corpus_tfidf = tfidf[bow_corpus]
+    # lda_model = gensim.models.LdaMulticore(bow_corpus, num_topics=10, id2word=dictionary, passes=2, workers=2)
+    lda_model = gensim.models.LdaMulticore(corpus_tfidf, num_topics=10, id2word=dictionary, passes=2, workers=4)
+    for idx, topic in lda_model.print_topics(-1):
+        print('Topic: {} \nWords: {}'.format(idx, topic))
+    import pickle
+
+    file_name = 'lda_Model.sav'
+    pickle.dump(lda_model, open(file_name, 'wb'))
+    file_name = 'tfidf_corpus.sav'
+    pickle.dump(corpus_tfidf, open(file_name, 'wb'))
+    # loaded_model = pickle.load(open(file_name, 'rb))
