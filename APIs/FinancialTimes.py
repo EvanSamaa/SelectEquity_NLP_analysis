@@ -113,4 +113,4 @@ def financial_times_scrapping(keyword, earliest_date="2000-01-01", latest_date="
     news_df.to_csv(file_name, index=False)
     return total_articles_count
 if __name__ == "__main__":
-    search_financial_times("Corona", "2020-05-01", "2020-05-30")
+    search_financial_times("Corona", "2019-05-01", "2020-05-30")

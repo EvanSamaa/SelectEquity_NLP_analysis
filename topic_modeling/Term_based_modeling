@@ -13,6 +13,11 @@ import nltk
 from nltk.tokenize import TweetTokenizer
 from gensim import corpora, models
 import gensim
+import pickle
+import numpy as np
+import pyLDAvis.gensim
+from matplotlib import pyplot as plt
+from gensim.models.coherencemodel import CoherenceModel
 def tokenize(phrase):
     words = phrase
     words = re.sub(r'\d+', '', words)
@@ -35,17 +40,170 @@ def get_corpus(df_path):
                 article = tokenize(article)
                 corpus.append(article)
             except:
+                try:
+                    article = row["title"]
+                    article = tokenize(article)
+                    corpus.append(article)
+                except:
+                    print(row)
+    return corpus
+def get_corpus(df):
+    nltk.download('movie_reviews')
+    nltk.download('punkt')
+    nltk.download('wordnet')
+    corpus = []
+    for index, row in df.iterrows():
+        try:
+            article = row["title"] + ". " + row["raw_body"]
+            article = tokenize(article)
+            corpus.append(article)
+        except:
+            try:
+                article = row["title"]
+                article = tokenize(article)
+                corpus.append(article)
+            except:
                 print(row)
     return corpus
+
 if __name__ == "__main__":
-    # corpus = ["welcome to stackoverflow my friend",
-    #           "my friend, don't worry, you can get help from stackoverflow"]
-    # vectorizer = TfidfVectorizer()
-    # matrix = vectorizer.fit_transform(corpus)
-    # print(matrix)
-    processed_corpus = get_corpus("../APIs/data/covid_new_keyword.csv")
-    dictionary = gensim.corpora.Dictionary(processed_corpus)
+    cumulated_corpus = ["1-2_{}.pkl", "1-3_{}.pkl", "1-4_{}.pkl", "1-5_{}.pkl", "1-6_{}.pkl"]
+    csv_names = ["FT_all_between_1and2", "FT_all_between_2and3", "FT_all_between_3and4", "FT_all_between_4and5",
+                 "FT_all_between_5and6"]
+    numpy_coherance = ["1-2_coherence.npy", "1-3_coherence.npy", "1-4_coherence.npy",
+                        "1-5_coherence.npy", "1-6_coherence.npy"]
+    # for i in range(0, 5):
+    #     arr = np.load(numpy_coherance[i])
+    #     # print(np.argmax(-arr))
+    #     plt.plot(np.array(list(range(15, 30))), -arr)
+    #     plt.show()
+    # A[2]
+    done = [True, False, False, False, False]
+    dfs = []
+    print()
+    for i in range(0, 5):
+        df = pd.read_csv("../APIs/data/" + csv_names[i])
+        # =============================================================================================================
+        # first round of filtering:
+        #       all articles with the same title are likely not interesting (i.e. crosswords, Best of Lex Midweek)
+        df = df.sort_values(by="title")
+        df_sorted_list = []
+        prev_title = None
+        # prev_title_type = None
+        for index, row in df.iterrows():
+            if not pd.isna(row["title"]):
+                if prev_title is None:
+                    prev_title = row["title"]
+                    # prev_title_type = row["title"].split(":")[0]
+                    df_sorted_list.append([row["title"], row["date"], row["raw_body"], row["url"], row["publisher"]])
+                else:
+                    if prev_title == row["title"]:
+                        pass
+                    else:
+                        prev_title = row["title"]
+                        df_sorted_list.append(
+                            [row["title"], row["date"], row["raw_body"], row["url"], row["publisher"]])
+                        # if len(row["title"].split(":")) >= 2 and row["title"].split(":")[0] == prev_title_type:
+                        #     print(row["title"])
+                        #     print(row["title"].split(":"))
+                        #     prev_title = row["title"]
+                        #     df_sorted_list.append(
+                        #         [" ".join(row["title"].split(":")[1:]), row["date"], row["raw_body"], row["url"], row["publisher"]])
+                        # else:
+                        #     prev_title_type = row["title"].split(":")[0]
+                        #     prev_title = row["title"]
+                        #     df_sorted_list.append([row["title"], row["date"], row["raw_body"], row["url"], row["publisher"]])
+        df = pd.DataFrame(df_sorted_list, columns=df.columns)
+        # =============================================================================================================
+        # second round of filtering:
+        #       all articles with the same content are likely not interesting (i.e. crosswords, Best of Lex Midweek)
+        df = df.sort_values(by="raw_body")
+        df_sorted_list = []
+        prev_body = None
+        for index, row in df.iterrows():
+            if prev_title is None:
+                prev_body = row["raw_body"]
+                df_sorted_list.append([row["title"], row["date"], row["raw_body"], row["url"], row["publisher"]])
+            else:
+                if prev_body == row["raw_body"]:
+                    pass
+                else:
+                    prev_body = row["raw_body"]
+                    df_sorted_list.append([row["title"], row["date"], row["raw_body"], row["url"], row["publisher"]])
+        df = pd.DataFrame(df_sorted_list, columns=df.columns)
+        df = df.sort_values(by="title")
+
+    if True:
+        for i in range(0, 5):
+            # loaded_model = pickle.load(open(cumulated_corpus[i].format("model"), 'rb'))
+            dict = pickle.load(open(cumulated_corpus[i].format("dict"), 'rb'))
+            corpus_tfidf = pickle.load(open(cumulated_corpus[i].format("tfidf_corpus"), 'rb'))
+            coherence = []
+            df = pd.read_csv("../APIs/data/" + csv_names[i])
+            dfs.append(df)
+            cumulative_df = pd.concat(dfs)
+            try:
+                raw_corpus = pickle.load(open(cumulated_corpus[i].format("raw_corpus"), 'rb'))
+            except:
+                raw_corpus = get_corpus(cumulative_df)
+            if not done[i]:
+                file_name = cumulated_corpus[i].format("raw_corpus")
+                pickle.dump(raw_corpus, open(file_name, 'wb'))
+                for num in range(7, 30):
+                    model = gensim.models.LdaMulticore(corpus_tfidf, num_topics=num, id2word=dict, passes=2, workers=4)
+                    term_topics_matrix = model.get_topics()
+                    lda_visualization = pyLDAvis.gensim.prepare(model, corpus_tfidf, dict,
+                                                                sort_topics=False)
+                    for idx, topic in model.print_topics(-1):
+                        print('Topic: {} \nWords: {}'.format(idx, topic))
+                    data = pyLDAvis.display(lda_visualization)
+                    pyLDAvis.save_html(lda_visualization, 'vis.html')
+                    A[2]
+                    cm = CoherenceModel(model=model, corpus=corpus_tfidf, texts=raw_corpus, coherence="u_mass")
+                    coh = cm.get_coherence()
+                    print(coh)
+                    coherence.append(coh)
+                arr = np.array(coherence)
+                # plt.plot(np.array(list(range(15, 30))), arr)
+                # plt.show()
+                np.save(cumulated_corpus[i].split(".")[0].format("coherence") + ".npy", arr)
+
+    ###### gen corpus and stuff
+    cumulated_corpus = ["1-2_{}.pkl", "1-3_{}.pkl", "1-4_{}.pkl", "1-5_{}.pkl", "1-6_{}.pkl"]
+    monthly_corpus = ["1-2_{}.pkl", "2-3_{}.pkl", "3-4_{}.pkl", "4-5_{}.pkl", "5-6_{}.pkl"]
+    csv_names = ["FT_all_between_1and2", "FT_all_between_2and3", "FT_all_between_3and4", "FT_all_between_4and5", "FT_all_between_5and6"]
+    dfs = []
+    cumulative_dfs = []
+    processed_corpus = []
+    for i in range(0, 5):
+        df = pd.read_csv("../APIs/data/" + csv_names[i])
+        dfs.append(df)
+        cumulative_df = pd.concat(dfs)
+        cumulative_dfs.append(cumulative_df)
+        processed_corpus = get_corpus(cumulative_df)
+        dictionary = gensim.corpora.Dictionary(processed_corpus)
+
+        cumulated_corpus[i].format("corpus")
+        bow_corpus = [dictionary.doc2bow(doc) for doc in processed_corpus]  # bag of word corpus
+        tfidf = models.TfidfModel(bow_corpus)
+        corpus_tfidf = tfidf[bow_corpus]
+        lda_model = gensim.models.LdaMulticore(corpus_tfidf, num_topics=15, id2word=dictionary, passes=2, workers=4)
+        for idx, topic in lda_model.print_topics(-1):
+            print('Topic: {} \nWords: {}'.format(idx, topic))
+        import pickle
+        # file_name = cumulated_corpus[i].format("model")
+        # pickle.dump(lda_model, open(file_name, 'wb'))
+        # file_name = cumulated_corpus[i].format("tfidf_corpus")
+        # pickle.dump(corpus_tfidf, open(file_name, 'wb'))
+        # file_name = cumulated_corpus[i].format("dict")
+        # pickle.dump(dictionary, open(file_name, 'wb'))
+
+
+    file_name = 'lda_Model.sav'
+    pickle.dump(lda_model, open(file_name, 'wb'))
+
     # dictionary.filter_extremes(no_below=0, no_above=0.5, keep_n=100000)
+
     count = 0
     bow_corpus = [dictionary.doc2bow(doc) for doc in processed_corpus]
     tfidf = models.TfidfModel(bow_corpus)

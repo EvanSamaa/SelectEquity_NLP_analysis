@@ -6,17 +6,17 @@ import os
 def CNN_scraping(query, earliest_date="2000-01-01", latest_date="", temp_file_name = 'data/CNN_temp.txt', output_file_name='data/CNNNews.csv'):
     queries = query.split(" OR ")
     for q in queries:
-        query_CNN_by_keyword_alt(q, earliest_date=earliest_date, latest_date=latest_date, temp_file_name=temp_file_name)
+        query_CNN_by_keyword_alt(q, earliest_date=earliest_date, latest_date_str=latest_date, temp_file_name=temp_file_name)
     with open(temp_file_name) as infile:
         news_df = pd.read_json(infile, orient='index')
     os.remove(temp_file_name)
     news_df.to_csv(output_file_name, index=False)
-def query_CNN_by_keyword_alt(keyword, earliest_date="2000-01-01", latest_date="", date_param="firstPublishDate", temp_file_name='data/CNN_temp.txt'):
+def query_CNN_by_keyword_alt(keyword, earliest_date="2000-01-01", latest_date_str="", date_param="firstPublishDate", temp_file_name='data/CNN_temp.txt'):
     # earliest_date and latest_date should in the form for
     url = "https://search.api.cnn.io/content/"
     ealiest_date = dt.strptime(earliest_date, "20%y-%m-%d")
-    if latest_date != "":
-        latest_date = dt.strptime(latest_date, "20%y-%m-%d")
+    if latest_date_str != "":
+        latest_date = dt.strptime(latest_date_str, "20%y-%m-%d")
     rtv = {}
     try:
         with open(temp_file_name) as infile:
@@ -28,15 +28,19 @@ def query_CNN_by_keyword_alt(keyword, earliest_date="2000-01-01", latest_date=""
         increment = 100
         oldest_article_date = ""
         total = 0
-        counter = 500
+        counter = 50
         while True:
-            params = {"q": keyword, "sort": "newest", "size": 100, "from": starting_article_number}
+            params = {"q": keyword, "size": 100, "from": starting_article_number}
             if keyword == "_all":
-                params = {"sort": "newest", "size": 100, "from": starting_article_number}
+                date_range=str(earliest_date)+"T00:00:00Z"+"~"+str(latest_date_str)+"T00:00:00Z"
+                params = {"sort": "newest", "size": 100, "from": starting_article_number, "firstPublishDate":date_range}
             r = requests.get(url, params).json()
             # error protection
-            if len(r['result']) == 0:
-                break
+            try:
+                if len(r['result']) == 0:
+                    break
+            except:
+                print("weird things are happening")
             # storing result
             for a in r['result']:
                 # try:
@@ -57,8 +61,9 @@ def query_CNN_by_keyword_alt(keyword, earliest_date="2000-01-01", latest_date=""
                     sub_json["keyword"] = keyword
                     rtv[a['_id']] = sub_json
             # calculating stopping condition
-                if dt.strptime(a["firstPublishDate"].split("T")[0], "20%y-%m-%d") < ealiest_date:
-                    counter = counter - 1
+            if dt.strptime(r['result'][0]["firstPublishDate"].split("T")[0], "20%y-%m-%d") < ealiest_date:
+                counter = counter - 1
+                print(counter)
             if counter == 0:
                 break
             starting_article_number += increment
