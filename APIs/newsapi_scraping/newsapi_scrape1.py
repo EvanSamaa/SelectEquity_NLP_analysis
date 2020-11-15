@@ -53,7 +53,13 @@ def scrape_headlines(url, parameters):
 
 if __name__ == "__main__":
     # Global variables
+    api_keys = []
     api_key = 'c054cfb5c898479c96aaf26ddbd26dee'    # your own API key
+    api_keys.append(api_key)
+    api_keys.append("2d8d34d10e834f018cb7684a989ce7bf")
+    api_keys.append("2cb933f2aa724380bb555eb474d5b720")
+    api_keys.append("f90bad89f8ae45479df51f61fee40487")
+
     url_everything = 'https://newsapi.org/v2/everything?'
     url_headlines = 'https://newsapi.org/v2/top-headlines?'
 

@@ -8,6 +8,7 @@ from nltk.corpus import stopwords #imports stopwords from nltk
 from nltk.corpus import wordnet #imports wordnet(lexical database for the english language) from nltk
 from nltk.tokenize import RegexpTokenizer, word_tokenize
 from nltk.stem import SnowballStemmer
+from nltk import WordNetLemmatizer
 import re
 import nltk
 from nltk.tokenize import TweetTokenizer
@@ -16,21 +17,11 @@ import gensim
 import pickle
 import numpy as np
 import pyLDAvis.gensim
+from utils import *
 from matplotlib import pyplot as plt
 from gensim.models.coherencemodel import CoherenceModel
-def tokenize(phrase):
-    words = phrase
-    words = re.sub(r'\d+', '', words)
-    words = TweetTokenizer().tokenize(words)
-    stemmer = SnowballStemmer("english")
-    words = [token.lower() for token in words]
-    words = [word for word in words if word not in stopwords.words('english') and len(word) >= 3]
-    words = [stemmer.stem(token) for token in words]
-    return words
 def get_corpus(df_path):
-    nltk.download('movie_reviews')
-    nltk.download('punkt')
-    nltk.download('wordnet')
+    download_nltk_models()
     df = pd.read_csv(df_path)
     corpus = []
     for index, row in df.iterrows():
@@ -48,9 +39,7 @@ def get_corpus(df_path):
                     print(row)
     return corpus
 def get_corpus(df):
-    nltk.download('movie_reviews')
-    nltk.download('punkt')
-    nltk.download('wordnet')
+    download_nltk_models()
     corpus = []
     for index, row in df.iterrows():
         try:
@@ -72,12 +61,12 @@ if __name__ == "__main__":
                  "FT_all_between_5and6"]
     numpy_coherance = ["1-2_coherence.npy", "1-3_coherence.npy", "1-4_coherence.npy",
                         "1-5_coherence.npy", "1-6_coherence.npy"]
-    # for i in range(0, 5):
-    #     arr = np.load(numpy_coherance[i])
-    #     # print(np.argmax(-arr))
-    #     plt.plot(np.array(list(range(15, 30))), -arr)
-    #     plt.show()
-    # A[2]
+    tokenizer_custom = Tokenizer_for_glove()
+    for i in range(0, 5):
+        df = pd.read_csv("../APIs/data/" + csv_names[i])
+        tim = df["title"][0]
+        print(tokenizer_custom(tim))
+    A[2]
     done = [True, False, False, False, False]
     dfs = []
     print()
