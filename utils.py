@@ -859,11 +859,21 @@ def Tokenizer_for_glove():
         words = re.sub(r'\d+', '', words)
         words = TweetTokenizer().tokenize(words)
         lematizer = WordNetLemmatizer()
+        caps = [token[0].isupper() for token in words]
         words = [token.lower() for token in words]
-        words = [word for word in words if word not in stopwords.words('english') and len(word) >= 3 and words not in days_of_week] #
+        temp_words = []
+        temp_caps = []
+        for i in range(0, len(caps)):
+            if words[i] not in stopwords.words('english') and len(words[i]) >= 3 and words[i] not in days_of_week:
+                temp_words.append(words[i])
+                temp_caps.append(caps[i])
+        words = temp_words
         words = [to_us_spelling.to_us(word) for word in words]
         tagged_words = nltk.pos_tag(words)
         words = [lematizer.lemmatize(token[0], get_wordnet_pos(token[1])) for token in tagged_words]
+        for i in range(0, len(temp_caps)):
+            if temp_caps[i]:
+                 words[i] = words[i][0].upper() + words[i][1:]
         return words
     return tokenize
 def new_df_cleaning(df):
