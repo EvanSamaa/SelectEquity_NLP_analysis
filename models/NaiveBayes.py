@@ -113,7 +113,6 @@ if __name__ == "__main__":
                 correct = correct + 1
     print(count)
     print(correct/count)
-    A[2]
     df = pd.read_csv("../APIs/data/covid.csv")
     count = np.zeros((1000, 4))
     day_1 = datetime.strptime("2019-10-10", "20%y-%m-%d")

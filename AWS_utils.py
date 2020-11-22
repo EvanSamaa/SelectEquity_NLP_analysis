@@ -32,4 +32,9 @@ class StorageWizard():
 
 if __name__ == "__main__":
     wiz = StorageWizard()
-    wiz.store("/", "APIs/data/covid_new_keyword.csv")
+    wiz.store("/", "APIs/data/FT_all_between_1and2")
+    wiz.store("/", "APIs/data/FT_all_between_2and3")
+    wiz.store("/", "APIs/data/FT_all_between_3and4")
+    wiz.store("/", "APIs/data/FT_all_between_4and5")
+    wiz.store("/", "APIs/data/FT_all_between_5and6")
+

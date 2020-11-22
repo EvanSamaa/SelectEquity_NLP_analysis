@@ -5,17 +5,23 @@ import time
 from datetime import datetime
 import pandas as pd
 import os
-def scrape_NYtimes(queries, earliest_date="2000-01-01", latest_date=""):
+def scrape_NYtimes(queries, earliest_date="2000-01-01", latest_date="", file_name='data/NYtimes.csv'):
     queries = queries.split(" OR ")
     tot_articles = 0
     for q in queries:
-        tot_articles = tot_articles + search_ny_times(q, earliest_date=earliest_date, latest_date=latest_date)
+        tot_articles = tot_articles + search_ny_times(q, earliest_date=earliest_date, latest_date=latest_date, file_name=file_name)
     os.remove("data/NY_temp.txt")
     return tot_articles
-def search_ny_times(query, earliest_date="2000-01-01", latest_date=""):
+def search_ny_times(query, earliest_date="2000-01-01", latest_date="", file_name='data/NYtimes.csv'):
     # Create your own account (https://developer.nytimes.com/get-started) and get your api key if you like. 
     # But you can also use my key, it should work in the same way.
-    params = {"q":query, "api-key":"37xNSjQNTdhK18OgxAGjn9WN9QnO1Sn7", "sort":"oldest", "page":0, "begin_date":earliest_date}
+    earliest_date = "".join(earliest_date.split("-"))
+    if latest_date == "":
+        latest_date = datetime.today().strftime('%Y-%m-%d')
+    latest_date = "".join(latest_date.split("-"))
+    params = {"q":query, "api-key":"37xNSjQNTdhK18OgxAGjn9WN9QnO1Sn7", "sort":"oldest", "page":0, "begin_date":earliest_date, "end_date":latest_date}
+    if query == "_all":
+        params = {"api-key":"37xNSjQNTdhK18OgxAGjn9WN9QnO1Sn7", "sort":"oldest", "page":0, "begin_date":earliest_date, "end_date":latest_date}
     if latest_date != "":
         params["end_date"] = latest_date
     url = "https://api.nytimes.com/svc/search/v2/articlesearch.json"
@@ -26,9 +32,12 @@ def search_ny_times(query, earliest_date="2000-01-01", latest_date=""):
             rtv_dict = json.load(infile)
     except:
         rtv_dict = {}
-    for i in range(0, 1000):
+    for i in range(0, 200000):
         time.sleep(6)
-        params["page"] = i
+        try:
+            params["page"] = i
+        except:
+            break
         a = requests.get(url, params = params).json()
         try:
             if a["status"] == "OK":
@@ -37,6 +46,7 @@ def search_ny_times(query, earliest_date="2000-01-01", latest_date=""):
                     for article in data:
                         # for item in article.keys():
                         #     print(item, article[item])
+                        print(article["pub_date"].split("T")[0])
                         sub_json = {}
                         sub_json["title"] = article["headline"]["main"]
                         sub_json["date"] = article["pub_date"].split("T")[0]
@@ -59,7 +69,6 @@ def search_ny_times(query, earliest_date="2000-01-01", latest_date=""):
         json.dump(rtv_dict, outfile)
     with open('data/NY_temp.txt') as infile:
         news_df = pd.read_json(infile, orient='index')
-    file_name = 'data/NYtimes.csv'
     news_df.to_csv(file_name, index=False)
     return total_count
 def PARSE():
@@ -103,5 +112,5 @@ def PARSE():
         csvwriter.writerow(row)
 
 if __name__ == '__main__':
-    scrape_NYtimes("Trump OR Biden", "2020-09-19")
+    scrape_NYtimes("_all", "2020-02-01", "2020-05-01", "data/NYtimes_feb2May.csv")
     key = "37xNSjQNTdhK18OgxAGjn9WN9QnO1Sn7"
