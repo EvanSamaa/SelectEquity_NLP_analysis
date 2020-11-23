@@ -132,7 +132,3 @@ data/
 
 # dataset files
 topic_modeling/kmeans_clustering/GoogleNews-vectors-negative300.bin.gz
-
-# plots
-topic_modeling/kmeans_clustering/plots
-covid_data/plots/
