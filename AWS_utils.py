@@ -31,12 +31,10 @@ class StorageWizard():
             self.bucket.download_fileobj(file_key, data)
 
 if __name__ == "__main__":
-    df = pd.read_csv("../APIs/data/covid_by_keyword.csv")
-    count = np.zeros((1000, 4))
-    pos_count = np.zeros((1000, 4))
-    neg_count = np.zeros((1000, 4))
-    cts_sum = np.zeros((1000, 4))
-    day_1 = datetime.strptime("2019-10-10", "20%y-%m-%d")
-    for index, row in df.iterrows():
     wiz = StorageWizard()
-    wiz.store("/", "APIs/data/CNN_all_news_FEB2MAY.csv")
+    wiz.store("/", "APIs/data/FT_all_between_1and2")
+    wiz.store("/", "APIs/data/FT_all_between_2and3")
+    wiz.store("/", "APIs/data/FT_all_between_3and4")
+    wiz.store("/", "APIs/data/FT_all_between_4and5")
+    wiz.store("/", "APIs/data/FT_all_between_5and6")
+
