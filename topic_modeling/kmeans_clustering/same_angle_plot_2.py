@@ -28,7 +28,7 @@ def get_top_n_words(corpus, n=10):
     return words_freq[:n]
 
 
-def load_word2vec(headlines):
+def load_word2vec():
     # importing wordtovec embeddings
     from gensim.models import KeyedVectors
     pretrained_embeddings_path = "./GoogleNews-vectors-negative300.bin.gz"     # download at: https://s3.amazonaws.com/dl4j-distribution/GoogleNews-vectors-negative300.bin.gz
@@ -77,7 +77,7 @@ def elbow(X_train_wtv):
     plt.savefig('./plots/elbow_graph.png')
 
 
-def plot_clustering_2d(X_train_wtv, y_km, num_cluster, month):
+def plot_clustering_separate(X_train_wtv, y_km, num_cluster, numvec_dict, month_list):
     from sklearn.decomposition import PCA
     from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
     pca = PCA(n_components=2)
@@ -85,28 +85,88 @@ def plot_clustering_2d(X_train_wtv, y_km, num_cluster, month):
 
     lda_transformed = pd.DataFrame(lda.fit_transform(X_train_wtv, y_km))
 
-    for i in range(num_cluster):
-        plt.scatter(lda_transformed[y_km == i][0], lda_transformed[y_km == i][1], s=100, label='Cluster %s' % str(i+1))
+    for month in month_list:
+        if month == 'Jan':
+            start = 0
+            end = numvec_dict[month]
+        else:
+            start = end
+            end += numvec_dict[month]
+        lda_transformed_slice = lda_transformed.iloc[start:end]
+        y_km_slice = y_km[start:end]
 
-    plt.legend()
-    plt.savefig('./plots/aggregate/%s_clustering_%s.png' % (month, str(num_cluster)))
+        fig, ax = plt.subplots()
+        for i in range(num_cluster):
+            ax.scatter(lda_transformed_slice[y_km_slice == i][0], lda_transformed_slice[y_km_slice == i][1], s=100, label='Cluster %s' % str(i+1))
+            ax.legend()
+        try:
+            plt.savefig('./plots/same_angle_2/%s_clustering_%s.png' % (month, str(num_cluster)))
+        except FileNotFoundError:
+            mkdir_p("./plots/same_angle_2")
+            plt.savefig('./plots/same_angle_2/%s_clustering_%s.png' % (month, str(num_cluster)))
+        plt.close()
+
+
+def cluster_distance(X_train_wtv, y_km, num_cluster, numvec_dict, month_list):
+    # step 1: find cluster heads, defined as the mean of all vectors in the cluster
+    cluster_heads = {'Jan': [], 'Feb': [], 'Mar': [], 'Apr': [], 'May': []}
+    for month in month_list:
+        if month == 'Jan':
+            start = 0
+            end = numvec_dict[month]
+        else:
+            start = end
+            end += numvec_dict[month]
+        X_train_wtv_slice = X_train_wtv[start:end]
+        y_km_slice = y_km[start:end]
+
+        for i in range(num_cluster):
+            temp = X_train_wtv_slice[y_km_slice == i].mean(axis=0).reshape(1, 300)
+            cluster_heads[month].append(temp)
+
+        # step 2: calculate pointwise distance between cluster heads in the same month
+        print("\n%s" % month)
+        for i in range(num_cluster):
+            print(" ")
+            for j in range(num_cluster):
+                # print(cluster_heads[month][i] - cluster_heads[month][j])
+                euc_dist = np.linalg.norm(cluster_heads[month][i] - cluster_heads[month][j])    # euclidean distance
+                print("The euclidean distance between cluster %d and %d is: %f" % (i+1, j+1, euc_dist))
+                # from scipy.spatial import distance
+                # cos_dist = distance.cosine(cluster_heads[month][i][0], cluster_heads[month][j][0])
+                # cos_sim = np.dot(cluster_heads[month][i], cluster_heads[month][j].T) / (np.linalg.norm(cluster_heads[month][i]) * np.linalg.norm(cluster_heads[month][j]))
+                # print("The cosine distance between cluster %d and %d is: %f" % (i + 1, j + 1, cos_dist))
+
+    print("-----------------------------------------------------------------------------------------------------------")
+    # step 3: calculate pointwise distance between the same cluster's head in different months
+    for month_i in month_list:
+        print("\n%s" % month_i)
+        for month_j in month_list:
+            print(" ")
+            for ii in range(num_cluster):
+                euc_dist = np.linalg.norm(cluster_heads[month_i][ii] - cluster_heads[month_j][ii])  # euclidean distance
+                print("The euclidean distance of cluster %d between %s and %s is: %f" % (ii+1, month_i, month_j, euc_dist))
 
 
 if __name__ == "__main__":
-    # our dataframe
-    num_month = 5
-    month = 'Jan+Feb+Mar+Apr+May'
-    path_dict = ['FT_all_between_1and2_title.csv', 'FT_all_between_2and3_title.csv', 'FT_all_between_3and4_title.csv',
-                 'FT_all_between_4and5_title.csv', 'FT_all_between_5and6_title.csv']
+    word2vec = load_word2vec()
+    print('done loading word2vec')
 
-    for i in range(num_month):
-        csv_path = './data/' + path_dict[i]
-        if i > 0:
+    month_list = ['Jan', 'Feb', 'Mar', 'Apr', 'May']
+    path_dict = {'Jan': 'FT_all_between_1and2_title.csv', 'Feb': 'FT_all_between_2and3_title.csv', 'Mar': 'FT_all_between_3and4_title.csv',
+                 'Apr': 'FT_all_between_4and5_title.csv', 'May': 'FT_all_between_5and6_title.csv'}
+    numvec_dict = {'Jan': None, 'Feb': None, 'Mar': None, 'Apr': None, 'May': None}
+    for month in month_list:
+        csv_path = './data/' + path_dict[month]
+        if month != 'Jan':
             temp_headlines = pd.read_csv(csv_path, parse_dates=[0], infer_datetime_format=True)
             headlines = pd.concat([headlines, temp_headlines], ignore_index=True)
+            numvec_dict[month] = temp_headlines.shape[0]
         else:
             headlines = pd.read_csv(csv_path, parse_dates=[0], infer_datetime_format=True)
+            numvec_dict[month] = headlines.shape[0]
     headlines.index = headlines['date']
+    print("numvec_dict: ", numvec_dict)
 
     # normalize and split
     headlines['title'] = headlines['title'].apply(normalize_texts)
@@ -127,9 +187,6 @@ if __name__ == "__main__":
     total_words_unique = len(count_vect.vocabulary_)
     print('total_words: {}'.format(total_words))
     print('total_words_unique: {}'.format(total_words_unique))
-
-    word2vec = load_word2vec(headlines)
-    print('done loading word2vec')
 
     X_train = pd.DataFrame(X)
     # headlines_smaller = X_train.sample(frac=0.2, random_state=423)
@@ -163,4 +220,7 @@ if __name__ == "__main__":
         print("Top words in cluster %s are:" % str(c+1), words)
 
     # plot clustering
-    plot_clustering_2d(X_train_wtv, y_km, num_cluster, month)
+    # plot_clustering_separate(X_train_wtv, y_km, num_cluster, numvec_dict, month_list)
+
+    # calculate point-wise cluster distance
+    cluster_distance(X_train_wtv, y_km, num_cluster, numvec_dict, month_list)

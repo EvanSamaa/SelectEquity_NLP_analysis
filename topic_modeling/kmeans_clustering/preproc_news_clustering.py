@@ -28,7 +28,7 @@ def get_top_n_words(corpus, n=10):
     return words_freq[:n]
 
 
-def load_word2vec(headlines):
+def load_word2vec():
     # importing wordtovec embeddings
     from gensim.models import KeyedVectors
     pretrained_embeddings_path = "./GoogleNews-vectors-negative300.bin.gz"     # download at: https://s3.amazonaws.com/dl4j-distribution/GoogleNews-vectors-negative300.bin.gz
@@ -89,23 +89,15 @@ def plot_clustering_2d(X_train_wtv, y_km, num_cluster, month):
         plt.scatter(lda_transformed[y_km == i][0], lda_transformed[y_km == i][1], s=100, label='Cluster %s' % str(i+1))
 
     plt.legend()
-    plt.savefig('./plots/aggregate/%s_clustering_%s.png' % (month, str(num_cluster)))
+    plt.savefig('./plots/preproc_news/%s_clustering_%s.png' % (month, str(num_cluster)))
 
 
 if __name__ == "__main__":
+    month = 'Jan'
     # our dataframe
-    num_month = 5
-    month = 'Jan+Feb+Mar+Apr+May'
-    path_dict = ['FT_all_between_1and2_title.csv', 'FT_all_between_2and3_title.csv', 'FT_all_between_3and4_title.csv',
-                 'FT_all_between_4and5_title.csv', 'FT_all_between_5and6_title.csv']
-
-    for i in range(num_month):
-        csv_path = './data/' + path_dict[i]
-        if i > 0:
-            temp_headlines = pd.read_csv(csv_path, parse_dates=[0], infer_datetime_format=True)
-            headlines = pd.concat([headlines, temp_headlines], ignore_index=True)
-        else:
-            headlines = pd.read_csv(csv_path, parse_dates=[0], infer_datetime_format=True)
+    csv_path = './data/preproc_news.csv'
+    headlines = pd.read_csv(csv_path, parse_dates=[0], infer_datetime_format=True)
+    # headlines['year'] = pd.DatetimeIndex(headlines['date']).year
     headlines.index = headlines['date']
 
     # normalize and split
@@ -128,7 +120,7 @@ if __name__ == "__main__":
     print('total_words: {}'.format(total_words))
     print('total_words_unique: {}'.format(total_words_unique))
 
-    word2vec = load_word2vec(headlines)
+    word2vec = load_word2vec()
     print('done loading word2vec')
 
     X_train = pd.DataFrame(X)

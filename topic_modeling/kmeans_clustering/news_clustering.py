@@ -6,6 +6,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 import re
 from sklearn.cluster import KMeans
+from utilities import *
 
 
 def normalize_texts(texts):
@@ -73,7 +74,7 @@ def elbow(X_train_wtv):
     plt.xlabel('Number of clusters')
     plt.ylabel('WCSS')
     plt.show()
-    plt.savefig('/plots/elbow_graph.png')
+    plt.savefig('./plots/elbow_graph.png')
 
 
 def plot_clustering_2d(X_train_wtv, y_km, num_cluster, month):
@@ -88,7 +89,7 @@ def plot_clustering_2d(X_train_wtv, y_km, num_cluster, month):
         plt.scatter(lda_transformed[y_km == i][0], lda_transformed[y_km == i][1], s=100, label='Cluster %s' % str(i+1))
 
     plt.legend()
-    plt.savefig('/plots/%s_clustering_%s.png' % (month, str(num_cluster)))
+    plt.savefig('./plots/%s_clustering_%s.png' % (month, str(num_cluster)))
 
 
 if __name__ == "__main__":
@@ -96,7 +97,7 @@ if __name__ == "__main__":
     month = 'Jan'
     path_dict = {'Jan':'FT_all_between_1and2_title.csv', 'Feb':'FT_all_between_2and3_title.csv', 'Mar':'FT_all_between_3and4_title.csv',
                  'Apr':'FT_all_between_4and5_title.csv', 'May':'FT_all_between_5and6_title.csv'}
-    csv_path = '/data/' + path_dict[month]
+    csv_path = './data/' + path_dict[month]
     headlines = pd.read_csv(csv_path, parse_dates=[0], infer_datetime_format=True)
     # headlines['year'] = pd.DatetimeIndex(headlines['date']).year
     headlines.index = headlines['date']
